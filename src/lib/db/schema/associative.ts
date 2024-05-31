@@ -18,3 +18,17 @@ export const coupon_groups = pgTable("coupon_groups", {
   coupon_id: varchar("coupon_id").references(() => coupons.id),
   group_id: varchar("group_id").references(() => groups.id),
 });
+
+const baseUserGroupSchema = createSelectSchema(user_groups);
+export const insertUserGroupSchema = createInsertSchema(user_groups);
+export const insertUserGroupParams = baseUserGroupSchema.extend({}).omit({
+  // user_email: true,
+  user_id: true,
+});
+export const userGroupIdSchema = baseUserGroupSchema.pick({
+  user_id: true,
+  group_id: true,
+});
+export type UserGroup = typeof user_groups.$inferSelect;
+export type NewUserGroup = z.infer<typeof insertUserGroupSchema>;
+export type NewUserGroupParams = z.infer<typeof insertUserGroupParams>;

@@ -39,7 +39,7 @@ const CouponForm = ({
   closeModal,
   postSuccess,
 }: {
-  groups: Group[];
+  groups?: Group[];
   groupsId?: GroupId;
   coupon?: Coupon | null;
   openModal?: (coupon?: Coupon) => void;
@@ -80,7 +80,7 @@ const CouponForm = ({
       router.refresh();
       postSuccess && postSuccess();
       toast.success(`Successfully ${action}d coupon!`);
-      if (action === "delete") router.push(backpath);
+      // if (action === "delete") router.push(backpath);
     }
   };
 
@@ -105,43 +105,27 @@ const CouponForm = ({
       createdAt: coupon?.createdAt ?? new Date(),
     };
 
-    // const pendingCoupon: Coupon = {
-    //   ...data,
-    //   id: coupon?.id ?? "",
-    //   userId: coupon?.userId ?? "",
-    //   updatedAt: coupon?.updatedAt ?? new Date(),
-    //   createdAt: coupon?.createdAt ?? new Date(),
-    // };
-    const error = await createCouponAction(pendingCoupon);
-    if (error) {
-      const errorFormatted = {
-        error: error ?? "Error",
-        values: pendingCoupon,
-      };
-      onSuccess("create", error ? errorFormatted : undefined);
+    try {
+      startMutation(async () => {
+        const error = editing
+          ? await updateCouponAction(pendingCoupon)
+          : await createCouponAction(pendingCoupon);
+
+        const errorFormatted = {
+          error: error ?? "Error",
+          values: pendingCoupon,
+        };
+        onSuccess(
+          editing ? "update" : "create",
+          error ? errorFormatted : undefined
+        );
+      });
+    } catch (e) {
+      if (e instanceof z.ZodError) {
+        // Handle Zod validation errors
+        console.error(e);
+      }
     }
-
-    // try {
-    //   startMutation(async () => {
-    //     const error = editing
-    //       ? await updateCouponAction(pendingCoupon)
-    //       : await createCouponAction(pendingCoupon);
-
-    //     const errorFormatted = {
-    //       error: error ?? "Error",
-    //       values: pendingCoupon,
-    //     };
-    //     onSuccess(
-    //       editing ? "update" : "create",
-    //       error ? errorFormatted : undefined
-    //     );
-    //   });
-    // } catch (e) {
-    //   if (e instanceof z.ZodError) {
-    //     // Handle Zod validation errors
-    //     console.error(e);
-    //   }
-    // }
   };
 
   return (
@@ -256,11 +240,15 @@ const CouponForm = ({
                 <SelectValue placeholder="Select a group" />
               </SelectTrigger>
               <SelectContent>
-                {groups.map((group) => (
-                  <SelectItem key={group.id} value={group.id}>
-                    {group.name}
-                  </SelectItem>
-                ))}
+                {groups && groups.length !== 0 ? (
+                  groups.map((group) => (
+                    <SelectItem key={group.id} value={group.id}>
+                      {group.name}
+                    </SelectItem>
+                  ))
+                ) : (
+                  <SelectItem value="default">No groups</SelectItem>
+                )}
               </SelectContent>
             </Select>
           )}

@@ -69,12 +69,18 @@ export const deleteCoupon = async (id: CouponId) => {
   const { session } = await getUserAuth();
   const { id: couponId } = couponIdSchema.parse({ id });
   try {
+    // delete in associative table
+    await db
+      .delete(coupon_groups)
+      .where(eq(coupon_groups.coupon_id, couponId!));
+
     const [c] = await db
       .delete(coupons)
       .where(
         and(eq(coupons.id, couponId!), eq(coupons.userId, session?.user.id!))
       )
       .returning();
+
     return { coupon: c };
   } catch (err) {
     const message = (err as Error).message ?? "Error, please try again";

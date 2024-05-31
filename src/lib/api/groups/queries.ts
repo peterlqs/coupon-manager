@@ -26,18 +26,20 @@ export const getGroups = async () => {
 
 export const getGroupByIdWithCoupons = async (id: string) => {
   const { session } = await getUserAuth();
-  const test = await db.select().from(groups).where(eq(groups.id, id));
   const rows = await db
     .select()
-    .from(coupons)
-    // .innerJoin(coupon_groups, eq(coupons.id, coupon_groups.coupon_id))
-    .fullJoin(coupon_groups, eq(coupons.id, coupon_groups.coupon_id))
-    .fullJoin(groups, eq(groups.id, coupon_groups.group_id))
+    .from(groups)
+    .innerJoin(coupon_groups, eq(groups.id, coupon_groups.group_id))
+    .innerJoin(coupons, eq(coupons.id, coupon_groups.coupon_id))
     .where(eq(groups.id, id));
+
   // get all the coupons from f
-  console.log(rows);
+  // const f = rows[0].groups!;
+  // const fm = rows.map((item) => item.coupons !== null && item.coupons)
+
   const couponList = rows.map((item) => item.coupons);
   // get all the groups from f
   const groupList = rows.map((item) => item.groups);
-  return { coupons: couponList, group: groupList[0] };
+  // return { coupons: couponList, group: groupList[0] };
+  return { coupons: couponList };
 };

@@ -6,7 +6,6 @@ import { getFurnitures } from "@/lib/api/furnitures/queries";
 
 import { checkAuth } from "@/lib/auth/utils";
 import { getCoupons } from "@/lib/api/coupons/queries";
-import CouponsList from "@/components/coupons/CouponsList";
 import { getGroups } from "@/lib/api/groups/queries";
 import GroupsList from "@/components/groups/GroupsList";
 

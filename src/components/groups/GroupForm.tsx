@@ -21,14 +21,18 @@ import {
   deleteGroupAction,
   updateGroupAction,
 } from "@/lib/actions/groups";
+import { createUserGroupAction } from "@/lib/actions/associative";
+import { UserGroup } from "@/lib/db/schema/associative";
 
 const GroupForm = ({
   group,
+  user_groups,
   openModal,
   closeModal,
   postSuccess,
 }: {
   group?: Group | null;
+  user_groups?: UserGroup[];
   openModal?: (group?: Group) => void;
   closeModal?: () => void;
   postSuccess?: () => void;
@@ -38,10 +42,17 @@ const GroupForm = ({
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<NewGroupParams>({
-    // defaultValues: {
-    //   code: coupon?.code ?? "",
-    // },
+    defaultValues: {
+      name: group?.name ?? "",
+      description: group?.description ?? "",
+    },
   });
+
+  // map user_groups to a list of user emails
+  const [users, setUsers] = useState<string[]>(
+    user_groups?.map((user) => user.user_email ?? "") ?? []
+  );
+  const [inputUserValue, setInputUserValue] = useState("");
 
   const editing = !!group?.id;
 
@@ -81,13 +92,31 @@ const GroupForm = ({
       userId: group?.userId ?? "",
     };
 
-    const error = await createGroupAction(pendingGroup);
-    if (error) {
+    const result = await createGroupAction(pendingGroup);
+    // Create associtive users
+    if (typeof result !== "string") {
+      console.log(users);
+      for (const user of users) {
+        const error = await createUserGroupAction({
+          user_email: user,
+          group_id: result.id,
+        });
+        if (error) {
+          onSuccess("create", {
+            error: error,
+            values: pendingGroup,
+          });
+          return;
+        }
+      }
+    }
+    // if type string => error
+    if (typeof result === "string") {
       const errorFormatted = {
-        error: error ?? "Error",
+        error: result ?? "Error",
         values: pendingGroup,
       };
-      onSuccess("create", error ? errorFormatted : undefined);
+      onSuccess("create", result ? errorFormatted : undefined);
     }
   };
 
@@ -133,6 +162,48 @@ const GroupForm = ({
           </p>
         )}
       </div>
+      {/* Add users to group */}
+      <div>
+        <Label className={cn("mb-2 inline-block")}>Users</Label>
+        <div className="flex gap-2">
+          <Input
+            type="email"
+            value={inputUserValue}
+            onChange={(e) => setInputUserValue(e.target.value)}
+          />{" "}
+          <Button
+            type="button"
+            onClick={() => {
+              const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+              if (emailRegex.test(inputUserValue)) {
+                setUsers([...users, inputUserValue]);
+                setInputUserValue("");
+              } else {
+                // Handle invalid email (e.g., show an error message)
+                alert("Please enter a valid email address.");
+              }
+            }}
+          >
+            Add User
+          </Button>
+        </div>
+        <div className="flex gap-1 mt-2">
+          {users.map((user, index) => (
+            <Button
+              variant={"secondary"}
+              size={"sm"}
+              key={index}
+              className="flex gap-2"
+              onClick={() => {
+                setUsers(users.filter((u) => u !== user));
+              }}
+            >
+              {user}
+            </Button>
+          ))}
+        </div>
+      </div>
+
       {/* Add more fields for your group schema */}
 
       {/* Schema fields end */}

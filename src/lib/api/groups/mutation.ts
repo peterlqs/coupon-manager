@@ -66,6 +66,17 @@ export const deleteGroup = async (id: GroupId) => {
   const { session } = await getUserAuth();
   const { id: groupId } = groupIdSchema.parse({ id });
   try {
+    // delete in association table
+    await db
+      .delete(user_groups)
+      .where(
+        and(
+          eq(user_groups.group_id, groupId!),
+          eq(user_groups.user_id, session?.user.id!)
+        )
+      )
+      .returning();
+
     const [g] = await db
       .delete(groups)
       .where(and(eq(groups.id, groupId!), eq(groups.userId, session?.user.id!)))

@@ -31,8 +31,10 @@ const revalidateGroups = () => revalidatePath("/groups");
 export const createGroupAction = async (input: NewGroupParams) => {
   try {
     const payload = insertGroupParams.parse(input);
-    await createGroup(payload);
+    // await createGroup(payload);
+    const result = await createGroup(payload);
     revalidateGroups();
+    return result.group;
   } catch (e) {
     return handleErrors(e);
   }

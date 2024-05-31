@@ -50,7 +50,7 @@ export default function CouponsList({
       ) : (
         <div>
           {coupons.map((coupon) => (
-            <CouponItem key={coupon.id} coupon={coupon} />
+            <CouponItem key={coupon.id} coupon={coupon} groups={groups} />
           ))}
         </div>
       )}
@@ -58,7 +58,18 @@ export default function CouponsList({
   );
 }
 
-const CouponItem = ({ coupon }: { coupon: Coupon }) => {
+const CouponItem = ({
+  coupon,
+  groups,
+}: {
+  coupon: Coupon;
+  groups: Group[];
+}) => {
+  const [open, setOpen] = useState(false);
+  const openModal = (_?: Coupon) => {
+    setOpen(true);
+  };
+  const closeModal = () => setOpen(false);
   return (
     <div className="flex justify-between items-center border-b border-border py-2">
       <div>
@@ -69,10 +80,19 @@ const CouponItem = ({ coupon }: { coupon: Coupon }) => {
         <p className="text-sm text-muted-foreground">{coupon.group}</p>
       </div>
       <div>
-        <Button variant={"link"} asChild>
-          <Link href={"/coupon/" + coupon.id}>Edit</Link>
-          {/* <Link href={basePath + "/" + coupon.id}>Edit</Link> */}
-        </Button>
+        <Modal open={open} setOpen={setOpen}>
+          <CouponForm
+            groups={groups}
+            coupon={coupon}
+            closeModal={closeModal}
+            openModal={openModal}
+          />
+        </Modal>
+        <div>
+          <Button variant={"link"} className="" onClick={() => setOpen(true)}>
+            Edit
+          </Button>
+        </div>
       </div>
     </div>
   );

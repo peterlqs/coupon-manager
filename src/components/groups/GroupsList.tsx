@@ -10,7 +10,7 @@ import Modal from "@/components/shared/Modal";
 import { Button } from "@/components/ui/button";
 import { PlusIcon } from "lucide-react";
 import { Group } from "@/lib/db/schema/groups";
-import GroupForm from "./GroupsForm";
+import GroupForm from "./GroupForm";
 
 type TOpenModal = () => void;
 
