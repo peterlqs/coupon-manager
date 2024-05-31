@@ -1,5 +1,5 @@
 "use client";
-import Link from "next/link"
+import Link from "next/link";
 import { emailSchema } from "@/lib/email/utils";
 import { useRef, useState } from "react";
 import { z } from "zod";
@@ -40,7 +40,7 @@ export default function Home() {
   };
   return (
     <main className="p-4 md:p-0">
-     <div>
+      {/* <div>
       <h1 className="text-2xl font-bold my-4">Send Email with Resend</h1>
       <div>
         <ol className="list-decimal list-inside space-y-1">
@@ -117,8 +117,7 @@ export default function Home() {
         >
           {sending ? "sending..." : "Send Email"}
         </button>
-      </form>
+      </form> */}
     </main>
   );
 }
-

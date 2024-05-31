@@ -73,11 +73,14 @@ const CouponItem = ({
   return (
     <div className="flex justify-between items-center border-b border-border py-2">
       <div>
-        <h3 className="font-semibold">{coupon.code}</h3>
+        <h3 className="font-semibold">Coupon code: {coupon.code}</h3>
         <p className="text-sm text-muted-foreground">
           {coupon.discount_amount}
         </p>
-        <p className="text-sm text-muted-foreground">{coupon.group}</p>
+        <p className="text-sm text-muted-foreground">
+          Group id: {coupon.group}
+        </p>
+        <p className="text-sm text-muted-foreground">Coupon ID: {coupon.id}</p>
       </div>
       <div>
         <Modal open={open} setOpen={setOpen}>

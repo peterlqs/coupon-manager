@@ -95,7 +95,7 @@ const Furniture = ({
         <div>{furniture.type}</div>
       </div>
       <Button variant={"link"} asChild>
-        <Link href={basePath + "/" + furniture.id}>Edit</Link>
+        <Link href={basePath + "/" + furniture.id}>Ed2it</Link>
       </Button>
     </li>
   );

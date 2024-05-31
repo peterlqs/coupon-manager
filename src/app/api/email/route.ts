@@ -5,13 +5,13 @@ import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   const body = await request.json();
-  const { name, email } = emailSchema.parse(body);
+  const { email, message, subject } = emailSchema.parse(body);
   try {
     const data = await resend.emails.send({
-      from: "Kirimase <onboarding@resend.dev>",
+      from: "Quan Ng <hi@longquan.me>",
       to: [email],
-      subject: "Hello world!",
-      react: EmailTemplate({ firstName: name }),
+      subject: subject,
+      react: EmailTemplate({ message: message }),
       text: "Email powered by Resend.",
     });
 
