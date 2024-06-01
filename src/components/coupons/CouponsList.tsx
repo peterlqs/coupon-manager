@@ -29,6 +29,17 @@ export default function CouponsList({
   const openModal = () => setOpen(true);
   const closeModal = () => setOpen(false);
 
+  // Sort the coupons by expiration_date
+  coupons.sort((a, b) => {
+    if (a.expiration_date && b.expiration_date) {
+      return (
+        new Date(a.expiration_date).getTime() -
+        new Date(b.expiration_date).getTime()
+      );
+    }
+    return 0;
+  });
+
   return (
     <div>
       <Modal open={open} setOpen={setOpen} title={"Create Coupon"}>
@@ -41,7 +52,7 @@ export default function CouponsList({
         />
       </Modal>
       <div className="absolute right-0 top-0 ">
-        <Button onClick={openModal} variant={"outline"}>
+        <Button onClick={openModal} variant={"default"}>
           <PlusIcon />
         </Button>
       </div>
@@ -70,17 +81,36 @@ const CouponItem = ({
     setOpen(true);
   };
   const closeModal = () => setOpen(false);
+
+  const formattedDate = coupon.expiration_date
+    ? new Date(coupon.expiration_date).toLocaleDateString()
+    : "";
+  const date1 = new Date(formattedDate);
+  const date2 = new Date();
+  date1.setHours(0, 0, 0, 0);
+  date2.setHours(0, 0, 0, 0);
+  // Calculate difference in days
+  const daysLeft = Math.floor(
+    (date1.getTime() - date2.getTime()) / (1000 * 60 * 60 * 24)
+  );
+  const group = groups.find((group) => group.id === coupon.group);
+
   return (
     <div className="flex justify-between items-center border-b border-border py-2">
       <div>
-        <h3 className="font-semibold">Coupon code: {coupon.code}</h3>
+        <h3 className="font-semibold text-xl">{coupon.code}</h3>
+        {coupon.discount_amount && (
+          <p className="text-md text-muted-foreground">
+            {coupon.discount_amount} VND
+          </p>
+        )}
+        <p className="text-sm text-muted-foreground">{formattedDate}</p>
         <p className="text-sm text-muted-foreground">
-          {coupon.discount_amount}
+          {daysLeft != 0 ? `${daysLeft} day(s) left` : "Expire today"}
         </p>
-        <p className="text-sm text-muted-foreground">
-          Group id: {coupon.group}
-        </p>
-        <p className="text-sm text-muted-foreground">Coupon ID: {coupon.id}</p>
+        {group && (
+          <p className="text-sm text-muted-foreground">Group: {group.name}</p>
+        )}
       </div>
       <div>
         <Modal open={open} setOpen={setOpen}>

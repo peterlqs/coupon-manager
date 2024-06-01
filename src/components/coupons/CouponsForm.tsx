@@ -53,9 +53,14 @@ const CouponForm = ({
     setValue,
     control,
   } = useForm<NewCouponParams>({
-    // defaultValues: {
-    //   code: coupon?.code ?? "",
-    // },
+    defaultValues: {
+      code: coupon?.code ?? "",
+      discount_amount: coupon?.discount_amount ?? 0,
+      expiration_date: coupon?.expiration_date ?? new Date(),
+      group: coupon?.group ?? "default",
+      note: coupon?.note ?? "",
+      store: coupon?.store ?? "",
+    },
   });
 
   const editing = !!coupon?.id;
@@ -86,21 +91,19 @@ const CouponForm = ({
 
   // const onSubmit = async (data: NewCouponParams) => {
   const onSubmit: SubmitHandler<NewCouponParams> = async (data) => {
-    console.log(data.group);
-    console.log(typeof data.group);
     // Parse the form data
     const pendingCoupon: Coupon = {
       code: data.code,
       discount_amount:
-        typeof data.discount_amount === "string"
-          ? parseFloat(data.discount_amount)
-          : data.discount_amount,
+        data.discount_amount && !isNaN(parseFloat(String(data.discount_amount)))
+          ? parseFloat(String(data.discount_amount))
+          : 0,
       expiration_date: new Date(data.expiration_date!),
       id: coupon?.id ?? "",
       userId: coupon?.userId ?? "",
       note: coupon?.note ?? "",
       store: coupon?.store ?? "",
-      group: data.group,
+      group: data.group ?? "default",
       updatedAt: coupon?.updatedAt ?? new Date(),
       createdAt: coupon?.createdAt ?? new Date(),
     };
@@ -129,7 +132,7 @@ const CouponForm = ({
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className={"space-y-8"}>
+    <form onSubmit={handleSubmit(onSubmit)} className={"space-y-2"}>
       {/* Schema fields start */}
       <div>
         <Label
@@ -149,25 +152,113 @@ const CouponForm = ({
           <p className="text-xs text-destructive mt-2">{errors.code.message}</p>
         )}
       </div>
-      <div>
-        <Label
-          className={cn(
-            "mb-2 inline-block",
-            errors?.code ? "text-destructive" : ""
+      <div className="flex gap-2">
+        <div>
+          <Label
+            className={cn(
+              "mb-2 inline-block",
+              errors?.code ? "text-destructive" : ""
+            )}
+          >
+            Discount Amount
+          </Label>
+          <Input
+            type="number"
+            className={cn(errors?.code ? "ring ring-destructive" : "")}
+            {...register("discount_amount", { required: false })}
+          />
+          {errors?.discount_amount && (
+            <p className="text-xs text-destructive mt-2">
+              {errors.discount_amount.message}
+            </p>
           )}
-        >
-          discount_amount
-        </Label>
-        <Input
-          type="number"
-          className={cn(errors?.code ? "ring ring-destructive" : "")}
-          {...register("discount_amount", { required: true })}
-        />
-        {errors?.discount_amount && (
-          <p className="text-xs text-destructive mt-2">
-            {errors.discount_amount.message}
-          </p>
-        )}
+        </div>
+        <div>
+          <Label
+            className={cn(
+              "mb-2 inline-block",
+              errors?.code ? "text-destructive" : ""
+            )}
+          >
+            Store
+          </Label>
+          <Input
+            type="text"
+            className={cn(errors?.code ? "ring ring-destructive" : "")}
+            {...register("store", { required: false })}
+          />
+          {errors?.store && (
+            <p className="text-xs text-destructive mt-2">
+              {errors.store.message}
+            </p>
+          )}
+        </div>
+      </div>
+
+      <div className="flex gap-2">
+        <div className="flex-1">
+          <Label
+            className={cn(
+              "mb-2 inline-block",
+              errors?.code ? "text-destructive" : ""
+            )}
+          >
+            Expiration Date
+          </Label>
+          <Input
+            type="date"
+            className={cn(errors?.code ? "ring ring-destructive" : "")}
+            {...register("expiration_date", { required: true })}
+          />
+          {errors?.expiration_date && (
+            <p className="text-xs text-destructive mt-2">
+              {errors.expiration_date.message}
+            </p>
+          )}
+        </div>{" "}
+        <div className="flex-1">
+          <Label
+            className={cn(
+              "mb-2 inline-block",
+              errors?.code ? "text-destructive" : ""
+            )}
+          >
+            Group
+          </Label>
+
+          <Controller
+            control={control}
+            name="group"
+            render={({ field: { onChange, value } }) => (
+              <Select
+                defaultValue={coupon?.group ?? undefined}
+                onValueChange={onChange}
+              >
+                <SelectTrigger
+                  className={cn(errors?.group ? "ring ring-destructive" : "")}
+                >
+                  <SelectValue placeholder="Select a group" />
+                </SelectTrigger>
+                <SelectContent>
+                  {groups && groups.length !== 0 ? (
+                    groups.map((group) => (
+                      <SelectItem key={group.id} value={group.id}>
+                        {group.name}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="default">No groups</SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+            )}
+          />
+          {errors?.group && (
+            <p className="text-xs text-destructive mt-2">
+              {errors.group.message}
+            </p>
+          )}
+        </div>
       </div>
 
       <div>
@@ -177,88 +268,19 @@ const CouponForm = ({
             errors?.code ? "text-destructive" : ""
           )}
         >
-          expiration_date
-        </Label>
-        <Input
-          type="date"
-          className={cn(errors?.code ? "ring ring-destructive" : "")}
-          {...register("expiration_date", { required: true })}
-        />
-        {errors?.expiration_date && (
-          <p className="text-xs text-destructive mt-2">
-            {errors.expiration_date.message}
-          </p>
-        )}
-      </div>
-      <div>
-        <Label
-          className={cn(
-            "mb-2 inline-block",
-            errors?.code ? "text-destructive" : ""
-          )}
-        >
-          store
+          Note
         </Label>
         <Input
           type="text"
           className={cn(errors?.code ? "ring ring-destructive" : "")}
-          {...register("store", { required: true })}
-        />
-        {errors?.store && (
-          <p className="text-xs text-destructive mt-2">
-            {errors.store.message}
-          </p>
-        )}
-      </div>
-      <div>
-        <Label
-          className={cn(
-            "mb-2 inline-block",
-            errors?.code ? "text-destructive" : ""
-          )}
-        >
-          note
-        </Label>
-        <Input
-          type="text"
-          className={cn(errors?.code ? "ring ring-destructive" : "")}
-          {...register("note", { required: true })}
+          {...register("note", { required: false })}
         />
         {errors?.note && (
           <p className="text-xs text-destructive mt-2">{errors.note.message}</p>
         )}
       </div>
-      <div>
-        <Controller
-          control={control}
-          name="group"
-          render={({ field: { onChange, value } }) => (
-            <Select defaultValue={groupsId} onValueChange={onChange}>
-              <SelectTrigger
-                className={cn(errors?.group ? "ring ring-destructive" : "")}
-              >
-                <SelectValue placeholder="Select a group" />
-              </SelectTrigger>
-              <SelectContent>
-                {groups && groups.length !== 0 ? (
-                  groups.map((group) => (
-                    <SelectItem key={group.id} value={group.id}>
-                      {group.name}
-                    </SelectItem>
-                  ))
-                ) : (
-                  <SelectItem value="default">No groups</SelectItem>
-                )}
-              </SelectContent>
-            </Select>
-          )}
-        />
-        {errors?.group && (
-          <p className="text-xs text-destructive mt-2">
-            {errors.group.message}
-          </p>
-        )}
-      </div>
+
+      <div className="h-2"></div>
 
       {/* Schema fields end */}
 

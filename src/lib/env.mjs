@@ -11,6 +11,8 @@ export const env = createEnv({
 
     CLERK_SECRET_KEY: z.string().min(1),
     RESEND_API_KEY: z.string().min(1),
+    QSTASH_CURRENT_SIGNING_KEY: z.string().min(1),
+    QSTASH_NEXT_SIGNING_KEY: z.string().min(1),
   },
   client: {
     NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string().min(1),
