@@ -12,7 +12,7 @@ export async function GET() {
     console.log("Current coupon: ", coupon.code);
     const baseUrl =
       process.env.NODE_ENV === "production"
-        ? "https://" + process.env.VERCEL_URL
+        ? "https://" + process.env.NEXT_PUBLIC_VERCEL_URL
         : "http://localhost:3000";
 
     for (const user of users.user_groups) {
