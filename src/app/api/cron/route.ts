@@ -12,7 +12,8 @@ export async function GET() {
     console.log("Current coupon: ", coupon.code);
     const baseUrl =
       process.env.NODE_ENV === "production"
-        ? "https://" + process.env.NEXT_PUBLIC_VERCEL_URL
+        ? // ? "https://" + process.env.NEXT_PUBLIC_VERCEL_URL
+          "https://couponsapp.vercel.app"
         : "http://localhost:3000";
 
     for (const user of users.user_groups) {
@@ -30,7 +31,6 @@ export async function GET() {
         },
       });
     }
-    // console.log(baseUrl + "/api/email");
   }
 
   return Response.json(coupons);
