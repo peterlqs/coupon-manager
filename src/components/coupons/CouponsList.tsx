@@ -8,12 +8,21 @@ import { cn } from "@/lib/utils";
 import Modal from "@/components/shared/Modal";
 
 import { Button } from "@/components/ui/button";
-import { PlusIcon } from "lucide-react";
+import { CameraIcon, PlusIcon } from "lucide-react";
 import { Coupon } from "@/lib/db/schema/coupons";
 import CouponForm from "./CouponsForm";
 import { Group, GroupId } from "@/lib/db/schema/groups";
+import { z } from "zod";
+import { Input } from "../ui/input";
+import ImageInput from "./ImageInput";
 
 type TOpenModal = () => void;
+
+export const schema = z.object({
+  resume: z.instanceof(File).refine((file) => file.size < 7000000, {
+    message: "Your resume must be less than 7MB.",
+  }),
+});
 
 export default function CouponsList({
   coupons,
@@ -28,6 +37,10 @@ export default function CouponsList({
   const [activeCoupon, setActiveCoupon] = useState<Coupon | null>(null);
   const openModal = () => setOpen(true);
   const closeModal = () => setOpen(false);
+
+  const [openImage, setOpenImage] = useState(false);
+  const openModalImage = () => setOpenImage(true);
+  const closeModalImage = () => setOpenImage(false);
 
   // Sort the coupons by expiration_date
   coupons.sort((a, b) => {
@@ -51,9 +64,12 @@ export default function CouponsList({
           closeModal={closeModal}
         />
       </Modal>
-      <div className="absolute right-0 top-0 ">
+      <div className="absolute right-0 top-0 gap-2 flex">
         <Button onClick={openModal} variant={"default"}>
           <PlusIcon />
+        </Button>
+        <Button onClick={openModalImage} variant={"default"}>
+          <CameraIcon />
         </Button>
       </div>
       {coupons.length === 0 ? (
