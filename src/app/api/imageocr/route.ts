@@ -17,7 +17,7 @@ const responseSchema = z.object({
   }),
 });
 
-export const classifyImage = async (file: File) => {
+const classifyImage = async (file: File) => {
   // encode our file as a base64 string so it can be sent in an HTTP request
   const encoded = await file
     .arrayBuffer()
