@@ -1,5 +1,5 @@
 import { db } from "@/lib/db/index";
-import { eq, and, lt, gte, SQLWrapper } from "drizzle-orm";
+import { eq, and, lt, gte, SQLWrapper, gt } from "drizzle-orm";
 import { getUserAuth } from "@/lib/auth/utils";
 import { coupons } from "@/lib/db/schema/coupons";
 import { coupon_groups, user_groups } from "@/lib/db/schema/associative";
@@ -14,11 +14,13 @@ export const getCoupons = async () => {
   return { coupons: f };
 };
 
-// Get coupons that has expiration date less than 1 day from today
-export const getAll1DayCoupons = async () => {
+// Get coupons that has expiration date less than {days} day from today
+export const getAllCouponsByDays = async (days: number) => {
   const today = new Date();
-  const tomorrow = new Date(today);
-  tomorrow.setDate(today.getDate() + 1);
+  const remindDate = new Date(today);
+  const aDayBeforeRemindDate = new Date(today);
+  remindDate.setDate(today.getDate() + days);
+  aDayBeforeRemindDate.setDate(today.getDate() + days - 1);
 
   const rows = await db
     // .selectDistinct({
@@ -29,7 +31,8 @@ export const getAll1DayCoupons = async () => {
     .where(
       and(
         gte(coupons.expiration_date, today),
-        lt(coupons.expiration_date, tomorrow)
+        gt(coupons.expiration_date, aDayBeforeRemindDate),
+        lt(coupons.expiration_date, remindDate)
         // Join coupon_group table
         // eq(coupons.id, coupon_groups.coupon_id)
       )
@@ -42,7 +45,7 @@ export const getAll1DayCoupons = async () => {
 };
 
 // Get the all the user emails that have coupons that expire in 1 day
-export const getAll1DayCouponsUsers = async (id: string) => {
+export const getAllDayCouponsUsers = async (id: string) => {
   const rows = await db
     .selectDistinct({
       user_email: user_groups.user_email,

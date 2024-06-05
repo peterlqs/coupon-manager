@@ -16,6 +16,9 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { NewCouponParams } from "@/lib/db/schema/coupons";
+import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { useState } from "react";
 
 const ACCEPTED_IMAGE_TYPES = [
   "image/jpeg",
@@ -45,19 +48,25 @@ export default function ImageInput({
     resolver: zodResolver(FormSchema),
   });
 
-  async function onSubmit(data: any) {
-    console.log(data);
+  const [isLoading, setIsLoading] = useState(false);
+
+  async function onSubmit(formData: any) {
+    setIsLoading(true);
     const response = await fetch("/api/imageocr", {
       method: "POST",
-      body: data.picture,
+      body: formData.picture,
     })
       .then((response) => response.json())
       .then((data) => {
+        setIsLoading(false);
         console.log(data);
         if (data.error) {
-          alert("Error processing image. Please try again.");
+          // alert("Error processing image. Please try again.");
+          toast.error("Error processing image. Please try again.");
           return;
         }
+        toast.success("Coupon scanned successfully.");
+        // TODO clear the form
         couponForm.setValue("code", data.coupon_code);
         couponForm.setValue("store", data.store);
         couponForm.setValue("discount_amount", data.discount_amount);
@@ -70,34 +79,36 @@ export default function ImageInput({
 
   return (
     <Form {...form}>
-      <FormLabel>Picture</FormLabel>
+      <FormLabel>Scan your coupon</FormLabel>
 
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="flex gap-2 items-start"
+        className="flex gap-2 items-start mt-1"
       >
         <FormField
           control={form.control}
           name="picture"
           render={({ field: { value, onChange, ...fieldProps } }) => (
-            <FormItem>
+            <FormItem className="w-full">
               <FormControl>
                 <Input
                   {...fieldProps}
                   placeholder="Picture"
                   type="file"
                   accept="image/*"
+                  disabled={isLoading}
                   onChange={(event) =>
                     onChange(event.target.files && event.target.files[0])
                   }
-                  className="w-full"
                 />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button type="submit">Submit</Button>
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? "Processing..." : "Scan"}
+        </Button>
       </form>
     </Form>
   );

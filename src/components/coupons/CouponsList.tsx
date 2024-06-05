@@ -65,11 +65,9 @@ export default function CouponsList({
         />
       </Modal>
       <div className="absolute right-0 top-0 gap-2 flex">
-        <Button onClick={openModal} variant={"default"}>
-          <PlusIcon />
-        </Button>
-        <Button onClick={openModalImage} variant={"default"}>
-          <CameraIcon />
+        <Button onClick={openModal} variant={"default"} size={"default"}>
+          <PlusIcon className="h-4" />
+          Add
         </Button>
       </div>
       {coupons.length === 0 ? (

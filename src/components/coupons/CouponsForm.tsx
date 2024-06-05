@@ -135,17 +135,10 @@ const CouponForm = ({
 
   return (
     <div>
-      <ImageInput couponForm={couponForm} />
-      <form onSubmit={handleSubmit(onSubmit)} className={"space-y-2"}>
-        {/* <Button
-          type="button"
-          onClick={() =>
-            setValue("expiration_date", "2021-04-23" as unknown as Date)
-          }
-        >
-          sdfds
-        </Button> */}
-        {/* Schema fields start */}
+      <div className="mb-3">
+        <ImageInput couponForm={couponForm} />
+      </div>
+      <form onSubmit={handleSubmit(onSubmit)} className={"space-y-3"}>
         <div>
           <Label
             className={cn(
