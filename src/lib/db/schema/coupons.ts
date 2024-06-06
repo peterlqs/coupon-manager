@@ -5,6 +5,7 @@ import {
   timestamp,
   pgTable,
   integer,
+  boolean,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -27,6 +28,7 @@ export const coupons = pgTable("coupons", {
   updatedAt: timestamp("updated_at")
     .notNull()
     .default(sql`now()`),
+  used: boolean("used").default(false).notNull(),
 });
 
 const baseCouponSchema = createSelectSchema(coupons);

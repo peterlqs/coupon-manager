@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { use, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -8,13 +8,21 @@ import { cn } from "@/lib/utils";
 import Modal from "@/components/shared/Modal";
 
 import { Button } from "@/components/ui/button";
-import { CameraIcon, PlusIcon } from "lucide-react";
+import {
+  CameraIcon,
+  CheckIcon,
+  EditIcon,
+  PencilIcon,
+  PlusIcon,
+} from "lucide-react";
 import { Coupon } from "@/lib/db/schema/coupons";
 import CouponForm from "./CouponsForm";
 import { Group, GroupId } from "@/lib/db/schema/groups";
 import { z } from "zod";
 import { Input } from "../ui/input";
 import ImageInput from "./ImageInput";
+import { updateCouponAction } from "@/lib/actions/coupons";
+import { set } from "date-fns";
 
 type TOpenModal = () => void;
 
@@ -37,10 +45,6 @@ export default function CouponsList({
   const [activeCoupon, setActiveCoupon] = useState<Coupon | null>(null);
   const openModal = () => setOpen(true);
   const closeModal = () => setOpen(false);
-
-  const [openImage, setOpenImage] = useState(false);
-  const openModalImage = () => setOpenImage(true);
-  const closeModalImage = () => setOpenImage(false);
 
   // Sort the coupons by expiration_date
   coupons.sort((a, b) => {
@@ -73,7 +77,7 @@ export default function CouponsList({
       {coupons.length === 0 ? (
         <EmptyState openModal={openModal} />
       ) : (
-        <div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
           {coupons.map((coupon) => (
             <CouponItem key={coupon.id} coupon={coupon} groups={groups} />
           ))}
@@ -90,6 +94,7 @@ const CouponItem = ({
   coupon: Coupon;
   groups: Group[];
 }) => {
+  const [isLoading, setIsLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const openModal = (_?: Coupon) => {
     setOpen(true);
@@ -108,38 +113,76 @@ const CouponItem = ({
     (date1.getTime() - date2.getTime()) / (1000 * 60 * 60 * 24)
   );
   const group = groups.find((group) => group.id === coupon.group);
+  console.log(coupon.store);
+
+  const formattedDiscountAmount = coupon.discount_amount?.toLocaleString(
+    "vi-VN",
+    {
+      // style: "currency",
+      currency: "VND",
+    }
+  );
+
+  const usedCoupon = async () => {
+    setIsLoading(true);
+    await updateCouponAction({ ...coupon, used: true });
+    setIsLoading(false);
+  };
 
   return (
-    <div className="flex justify-between items-center border-b border-border py-2">
+    <div className="flex justify-between items-start py-4 px-4 rounded-lg border border-slate-300 dark:border-slate-700">
       <div>
-        <h3 className="font-semibold text-xl">{coupon.code}</h3>
         {coupon.discount_amount && (
-          <p className="text-md text-muted-foreground">
-            {coupon.discount_amount} VND
+          <p className="text-md text-4xl font-semibold flex items-start mb-1">
+            {/* {coupon.discount_amount} VND */}
+            {/* parse discount amount by thousand like 1.000 */}
+            {formattedDiscountAmount}
+            <span className="text-xl ml-1">₫</span>
           </p>
         )}
-        <p className="text-sm text-muted-foreground">{formattedDate}</p>
-        <p className="text-sm text-muted-foreground">
-          {daysLeft != 0 ? `${daysLeft} day(s) left` : "Expire today"}
+        <p className="text-sm text-muted-foreground">Code</p>
+        <p className="text-lg">{coupon.code}</p>
+        <p className="text-sm text-muted-foreground">Date</p>
+        <p className="text-lg">
+          {formattedDate}{" "}
+          <span className="text-muted-foreground text-sm">
+            {daysLeft != 0 ? `${daysLeft} days left` : "Expire today"}
+          </span>
         </p>
+        {coupon.store && (
+          <div>
+            <p className="text-sm text-muted-foreground">Store</p>
+            <p className="text-lg">{coupon.store}</p>
+          </div>
+        )}
         {group && (
-          <p className="text-sm text-muted-foreground">Group: {group.name}</p>
+          <div>
+            <p className="text-sm text-muted-foreground">Group</p>
+            <p className="text-lg">{group.name}</p>
+          </div>
         )}
       </div>
-      <div>
-        <Modal open={open} setOpen={setOpen}>
-          <CouponForm
-            groups={groups}
-            coupon={coupon}
-            closeModal={closeModal}
-            openModal={openModal}
-          />
-        </Modal>
-        <div>
-          <Button variant={"link"} className="" onClick={() => setOpen(true)}>
-            Edit
-          </Button>
-        </div>
+      <Modal open={open} setOpen={setOpen}>
+        <CouponForm
+          groups={groups}
+          coupon={coupon}
+          closeModal={closeModal}
+          openModal={openModal}
+        />
+      </Modal>
+      <div className="flex flex-col justify-between gap-2 items-center h-full">
+        <Button
+          variant={"outline"}
+          size={"icon"}
+          className=""
+          disabled={isLoading}
+          onClick={usedCoupon}
+        >
+          <CheckIcon className="h-4" />
+        </Button>
+        <Button variant={"link"} className="" onClick={() => setOpen(true)}>
+          Edit
+        </Button>
       </div>
     </div>
   );

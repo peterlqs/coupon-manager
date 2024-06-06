@@ -78,38 +78,36 @@ export default function ImageInput({
   }
 
   return (
-    <Form {...form}>
-      <FormLabel>Scan your coupon</FormLabel>
-
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="flex gap-2 items-start mt-1"
-      >
-        <FormField
-          control={form.control}
-          name="picture"
-          render={({ field: { value, onChange, ...fieldProps } }) => (
-            <FormItem className="w-full">
-              <FormControl>
-                <Input
-                  {...fieldProps}
-                  placeholder="Picture"
-                  type="file"
-                  accept="image/*"
-                  disabled={isLoading}
-                  onChange={(event) =>
-                    onChange(event.target.files && event.target.files[0])
-                  }
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? "Processing..." : "Scan"}
-        </Button>
-      </form>
-    </Form>
+    <div className="flex flex-col gap-2 items-start mt-1 bg-secondary rounded-lg p-4">
+      <Form {...form}>
+        <FormLabel>Quick scan your coupon</FormLabel>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="flex gap-2">
+          <FormField
+            control={form.control}
+            name="picture"
+            render={({ field: { value, onChange, ...fieldProps } }) => (
+              <FormItem className="w-full">
+                <FormControl>
+                  <Input
+                    {...fieldProps}
+                    placeholder="Picture"
+                    type="file"
+                    accept="image/*"
+                    disabled={isLoading}
+                    onChange={(event) =>
+                      onChange(event.target.files && event.target.files[0])
+                    }
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? "Processing..." : "Scan"}
+          </Button>
+        </form>
+      </Form>
+    </div>
   );
 }

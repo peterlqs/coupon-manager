@@ -47,11 +47,17 @@ const CouponForm = ({
   closeModal?: () => void;
   postSuccess?: () => void;
 }) => {
+  // convert expiration date to yyyy-mm-dd format
+  const expiration_date = coupon?.expiration_date
+    ? new Date(coupon.expiration_date).toISOString().split("T")[0]
+    : "";
+
   const couponForm = useForm<NewCouponParams>({
     defaultValues: {
       code: coupon?.code ?? "",
       discount_amount: coupon?.discount_amount ?? 0,
-      expiration_date: coupon?.expiration_date ?? new Date(),
+      // expiration_date: coupon?.expiration_date ?? new Date(),
+      expiration_date: expiration_date as unknown as Date,
       group: coupon?.group ?? "default",
       note: coupon?.note ?? "",
       store: coupon?.store ?? "",
@@ -84,8 +90,8 @@ const CouponForm = ({
         description: data?.error ?? "Error",
       });
     } else {
-      router.refresh();
-      postSuccess && postSuccess();
+      // router.refresh();
+      // postSuccess && postSuccess();
       toast.success(`Successfully ${action}d coupon!`);
       // if (action === "delete") router.push(backpath);
     }
@@ -103,11 +109,12 @@ const CouponForm = ({
       expiration_date: new Date(data.expiration_date!),
       id: coupon?.id ?? "",
       userId: coupon?.userId ?? "",
-      note: coupon?.note ?? "",
-      store: coupon?.store ?? "",
+      note: data?.note ?? "",
+      store: data?.store ?? "",
       group: data.group ?? "default",
       updatedAt: coupon?.updatedAt ?? new Date(),
       createdAt: coupon?.createdAt ?? new Date(),
+      used: coupon?.used ?? false,
     };
 
     try {
@@ -120,10 +127,10 @@ const CouponForm = ({
           error: error ?? "Error",
           values: pendingCoupon,
         };
-        onSuccess(
-          editing ? "update" : "create",
-          error ? errorFormatted : undefined
-        );
+        // onSuccess(
+        //   editing ? "update" : "create",
+        //   error ? errorFormatted : undefined
+        // );
       });
     } catch (e) {
       if (e instanceof z.ZodError) {
@@ -291,7 +298,7 @@ const CouponForm = ({
         <div className="h-2"></div>
         {/* Schema fields end */}
         {/* Save Button */}
-        <SaveButton editing={editing} errors={errors ? false : true} />
+        <SaveButton editing={editing} isSubmitting={isSubmitting} />
         {/* Delete Button */}
         {editing ? (
           <Button
@@ -324,13 +331,15 @@ export default CouponForm;
 
 const SaveButton = ({
   editing,
-  errors,
+  isSubmitting,
 }: {
   editing: Boolean;
-  errors: boolean;
+  isSubmitting: boolean;
 }) => {
-  const isCreating = !editing && errors;
-  const isUpdating = editing && errors;
+  console.log("Editing: ", editing, "isSubmitting: ", isSubmitting);
+  const isCreating = !editing && isSubmitting;
+  const isUpdating = editing && isSubmitting;
+  console.log("isCreating: ", isCreating);
   return (
     <Button
       type="submit"

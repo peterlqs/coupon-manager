@@ -14,7 +14,7 @@ import { ModeToggle } from "./ui/ThemeToggle";
 export default function Navbar2() {
   return (
     <header className="absolute top-0 left-0 w-full lg:px-8 px-4 h-20 flex items-center">
-      <Link className="flex items-center justify-center" href="#">
+      <Link className="flex items-center justify-center" href="/">
         <MountainIcon className="h-6 w-6" />
         <span className="sr-only">Acme Inc</span>
       </Link>

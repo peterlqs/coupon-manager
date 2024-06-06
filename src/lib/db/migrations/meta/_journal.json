@@ -43,6 +43,13 @@
       "when": 1717071366676,
       "tag": "0005_old_vivisector",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1717640256286,
+      "tag": "0006_flashy_jackpot",
+      "breakpoints": true
     }
   ]
 }

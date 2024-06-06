@@ -16,8 +16,12 @@ export default async function CouponsPage() {
   return (
     <main>
       <div className="relative">
-        <div className="flex justify-between">
+        <div className="">
           <h1 className="font-semibold text-2xl my-2">Coupons</h1>
+          <p className="">
+            A reminder email will be sent a week and a day before a coupon
+            expires.
+          </p>
         </div>
         <Coupons />
       </div>
@@ -33,7 +37,7 @@ const Coupons = async () => {
 
   // Separate coupons to expired ones and active ones based on expiration_date
   const expiredCoupons = coupons.filter((coupon) => {
-    if (coupon.expiration_date) {
+    if (coupon.expiration_date && coupon.used === false) {
       const expirationDate = new Date(coupon.expiration_date);
       const currentDate = new Date();
       expirationDate.setHours(0, 0, 0, 0);
@@ -43,7 +47,7 @@ const Coupons = async () => {
     return false;
   });
   const activeCoupons = coupons.filter((coupon) => {
-    if (coupon.expiration_date) {
+    if (coupon.expiration_date && coupon.used === false) {
       const expirationDate = new Date(coupon.expiration_date);
       const currentDate = new Date();
       expirationDate.setHours(0, 0, 0, 0);
@@ -52,21 +56,26 @@ const Coupons = async () => {
     }
     return false;
   });
+  const usedCoupons = coupons.filter((coupon) => coupon.used === true);
 
   return (
     <Suspense fallback={<Loading />}>
       {/* <FurnitureList furnitures={furnitures}  /> */}
       {/* <CouponsList coupons={coupons} groups={groups} /> */}
       <Tabs defaultValue="active" className="mt-4">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="active">Active Coupons</TabsTrigger>
           <TabsTrigger value="expired">Expired Coupons</TabsTrigger>
+          <TabsTrigger value="used">Used Coupons</TabsTrigger>
         </TabsList>
         <TabsContent value="active">
           <CouponsList coupons={activeCoupons} groups={groups} />
         </TabsContent>
         <TabsContent value="expired">
           <CouponsList coupons={expiredCoupons} groups={groups} />
+        </TabsContent>
+        <TabsContent value="used">
+          <CouponsList coupons={usedCoupons} groups={groups} />
         </TabsContent>
       </Tabs>
     </Suspense>

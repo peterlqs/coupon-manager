@@ -38,6 +38,10 @@ const Group = async ({ id }: { id: string }) => {
   const { coupons } = await getGroupByIdWithCoupons(id);
   // Get group's user's emails
   const { user_groups } = await getUserGroup(id);
+  // remove duplicates
+  const users = [...new Set(user_groups.map((item) => item))];
+  // join
+  const usersEmail = users.map((user) => user.user_email);
 
   return (
     <Suspense fallback={<Loading />}>
@@ -45,13 +49,8 @@ const Group = async ({ id }: { id: string }) => {
         <BackButton currentResource="groups" />
         <GroupTop group={group} user_groups={user_groups} />
       </div>
-      <div>
-        <p>{group.name}</p>
-        <p>{group.userId}</p>
-        <p>------</p>
-        {user_groups.map((user) => (
-          <p key={user.user_email}>{user.user_email}</p>
-        ))}
+      <div className="mx-4">
+        <p>Members: {usersEmail.join(", ")}</p>
       </div>
 
       <div className="relative mt-8 mx-4">
