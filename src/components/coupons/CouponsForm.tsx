@@ -58,7 +58,7 @@ const CouponForm = ({
       discount_amount: coupon?.discount_amount ?? 0,
       // expiration_date: coupon?.expiration_date ?? new Date(),
       expiration_date: expiration_date as unknown as Date,
-      group: coupon?.group ?? "default",
+      group: coupon?.group ?? "Default",
       note: coupon?.note ?? "",
       store: coupon?.store ?? "",
     },
@@ -246,7 +246,7 @@ const CouponForm = ({
               name="group"
               render={({ field: { onChange, value } }) => (
                 <Select
-                  defaultValue={coupon?.group ?? undefined}
+                  defaultValue={coupon?.group ?? "Default"}
                   onValueChange={onChange}
                 >
                   <SelectTrigger

@@ -9,17 +9,21 @@ export const getGroups = async () => {
   const { session } = await getUserAuth();
 
   const rows = await db
-    .select({
+    .selectDistinct({
       id: groups.id,
       name: groups.name,
       description: groups.description,
-      userId: groups.userId,
       createdAt: groups.createdAt,
       updatedAt: groups.updatedAt,
+      userId: groups.userId,
     })
     .from(groups)
-    .innerJoin(user_groups, eq(user_groups.group_id, groups.id))
-    .where(eq(user_groups.user_id, session?.user.id!));
+    .innerJoin(
+      user_groups,
+      eq(user_groups.user_email, session?.user.email || "")
+    );
+  // .innerJoin(user_groups, eq(user_groups.group_id, groups.id))
+  // .where(eq(user_groups.user_id, session?.user.id!));
   const f = rows;
   return { groups: f };
 };

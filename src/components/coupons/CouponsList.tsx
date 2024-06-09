@@ -132,10 +132,8 @@ const CouponItem = ({
   return (
     <div className="flex justify-between items-start py-4 px-4 rounded-lg border border-slate-300 dark:border-slate-700">
       <div>
-        {coupon.discount_amount && (
+        {coupon.discount_amount && coupon.discount_amount > 0 && (
           <p className="text-md text-4xl font-semibold flex items-start mb-1">
-            {/* {coupon.discount_amount} VND */}
-            {/* parse discount amount by thousand like 1.000 */}
             {formattedDiscountAmount}
             <span className="text-xl ml-1">₫</span>
           </p>
@@ -191,7 +189,7 @@ const CouponItem = ({
 const EmptyState = ({ openModal }: { openModal: TOpenModal }) => {
   return (
     <div className="text-center">
-      <h3 className="mt-2 text-sm font-semibold text-secondary-foreground">
+      <h3 className="mt-8 text-sm font-semibold text-secondary-foreground">
         No coupons
       </h3>
       <p className="mt-1 text-sm text-muted-foreground">

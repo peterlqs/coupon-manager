@@ -149,12 +149,12 @@ const GroupForm = ({
             errors?.description ? "text-destructive" : ""
           )}
         >
-          Description
+          Description (optional)
         </Label>
         <Input
           type="text"
           className={cn(errors?.description ? "ring ring-destructive" : "")}
-          {...register("description", { required: true })}
+          {...register("description", { required: false })}
         />
         {errors?.description && (
           <p className="text-xs text-destructive mt-2">
@@ -164,7 +164,7 @@ const GroupForm = ({
       </div>
       {/* Add users to group */}
       <div>
-        <Label className={cn("mb-2 inline-block")}>Users</Label>
+        <Label className={cn("mb-2 inline-block")}>Users (optional)</Label>
         <div className="flex gap-2">
           <Input
             type="email"

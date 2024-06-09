@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { PlusIcon } from "lucide-react";
 import { Group } from "@/lib/db/schema/groups";
 import GroupForm from "./GroupForm";
+import { getUserAuth } from "@/lib/auth/utils";
 
 type TOpenModal = () => void;
 
@@ -52,7 +53,6 @@ const GroupItem = ({ group }: { group: Group }) => {
     <div className="flex justify-between items-center border-b border-border py-2">
       <div>
         <h3 className="font-semibold">{group.name}</h3>
-        {/* Add group-specific fields here */}
       </div>
       <div>
         <Button variant={"link"} asChild>

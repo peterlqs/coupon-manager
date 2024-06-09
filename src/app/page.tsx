@@ -3,15 +3,12 @@
  * @see https://v0.dev/t/PmwTvNfrVgf
  * Documentation: https://v0.dev/docs#integrating-generated-code-into-your-nextjs-app
  */
-import { BackgroundBeams } from "@/components/ui/background-beams";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
 export default function LandingPage() {
   return (
     <div className="flex flex-col min-h-screen">
-      <BackgroundBeams className="-z-20" />
-
       <header className="px-4 lg:px-6 h-14 flex items-center">
         <Link className="flex items-center justify-center" href="#">
           <MountainIcon className="h-6 w-6" />
