@@ -23,6 +23,7 @@ import {
 } from "@/lib/actions/groups";
 import { createUserGroupAction } from "@/lib/actions/associative";
 import { UserGroup } from "@/lib/db/schema/associative";
+import { XIcon } from "lucide-react";
 
 const GroupForm = ({
   group,
@@ -187,18 +188,18 @@ const GroupForm = ({
             Add User
           </Button>
         </div>
-        <div className="flex gap-1 mt-2">
+        <div className="flex flex-wrap gap-1 mt-2 text-xs">
           {users.map((user, index) => (
             <Button
               variant={"secondary"}
               size={"sm"}
               key={index}
-              className="flex gap-2"
+              className="p-2"
               onClick={() => {
                 setUsers(users.filter((u) => u !== user));
               }}
             >
-              {user}
+              {user} <XIcon className="h-4" />
             </Button>
           ))}
         </div>

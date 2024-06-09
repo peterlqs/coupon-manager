@@ -19,6 +19,7 @@ export const revalidate = 0;
 export default async function CouponsPage() {
   // Check if user is added in Supabase yet
   const user = await getUser();
+
   if (!user.user[0]) {
     await createUserAction();
     const pendingGroup: Group = {

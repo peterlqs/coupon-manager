@@ -47,10 +47,17 @@ const Group = async ({ id }: { id: string }) => {
     <Suspense fallback={<Loading />}>
       <div className="relative">
         <BackButton currentResource="groups" />
-        <GroupTop group={group} user_groups={user_groups} />
-      </div>
-      <div className="mx-4">
-        <p>Members: {usersEmail.join(", ")}</p>
+        <div className="p-4 pb-8 mt-4 rounded-lg border border-secondary">
+          <GroupTop group={group} user_groups={user_groups} />
+          <div className="mx-4 flex gap-2 items-center">
+            <p>Members: </p>
+            {usersEmail.map((user) => (
+              <p className="bg-secondary rounded-lg px-2 py-1" key={user}>
+                {user}
+              </p>
+            ))}
+          </div>
+        </div>
       </div>
 
       <div className="relative mt-8 mx-4">

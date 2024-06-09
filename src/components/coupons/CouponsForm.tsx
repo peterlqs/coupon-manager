@@ -52,13 +52,16 @@ const CouponForm = ({
     ? new Date(coupon.expiration_date).toISOString().split("T")[0]
     : "";
 
+  // Get Default group id
+  const defaultGroup = groups?.find((group) => group.name === "Default");
+
   const couponForm = useForm<NewCouponParams>({
     defaultValues: {
       code: coupon?.code ?? "",
       discount_amount: coupon?.discount_amount ?? 0,
       // expiration_date: coupon?.expiration_date ?? new Date(),
       expiration_date: expiration_date as unknown as Date,
-      group: coupon?.group ?? "Default",
+      group: coupon?.group ?? groupsId ?? defaultGroup?.id,
       note: coupon?.note ?? "",
       store: coupon?.store ?? "",
     },
@@ -246,7 +249,7 @@ const CouponForm = ({
               name="group"
               render={({ field: { onChange, value } }) => (
                 <Select
-                  defaultValue={coupon?.group ?? "Default"}
+                  defaultValue={coupon?.group ?? groupsId ?? defaultGroup?.id}
                   onValueChange={onChange}
                 >
                   <SelectTrigger

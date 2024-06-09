@@ -16,7 +16,6 @@ export default async function AppLayout({
         <div className="flex h-screen">
           {/* <Sidebar /> */}
           <Navbar2 />
-
           <main className="flex-1 md:p-8 pt-2 p-8 overflow-y-auto mt-20">
             {children}
           </main>

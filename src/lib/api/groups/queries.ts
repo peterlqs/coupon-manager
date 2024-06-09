@@ -20,8 +20,10 @@ export const getGroups = async () => {
     .from(groups)
     .innerJoin(
       user_groups,
-      eq(user_groups.user_email, session?.user.email || "")
-    );
+      eq(user_groups.group_id, groups.id) // Join on the shared group_id column
+    )
+    .where(eq(user_groups.user_email, session?.user.email || "")); // Filter for specific user
+
   // .innerJoin(user_groups, eq(user_groups.group_id, groups.id))
   // .where(eq(user_groups.user_id, session?.user.id!));
   const f = rows;

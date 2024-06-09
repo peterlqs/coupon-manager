@@ -9,26 +9,6 @@ import Link from "next/link";
 export default function LandingPage() {
   return (
     <div className="flex flex-col min-h-screen">
-      <header className="px-4 lg:px-6 h-14 flex items-center">
-        <Link className="flex items-center justify-center" href="#">
-          <MountainIcon className="h-6 w-6" />
-          <span className="sr-only">Acme Inc</span>
-        </Link>
-        <nav className="ml-auto flex gap-4 sm:gap-6">
-          {/* <Link
-            className="text-sm font-medium hover:underline underline-offset-4"
-            href="#features"
-          >
-            Features
-          </Link> */}
-          <Link
-            className="text-sm font-medium hover:underline underline-offset-4"
-            href="/sign-in"
-          >
-            Sign In
-          </Link>
-        </nav>
-      </header>
       <main className="flex-1">
         {/* <section
           id="hero"
@@ -67,7 +47,7 @@ export default function LandingPage() {
             </div>
           </div>
         </section> */}
-        <section id="features" className="w-full py-12 md:py-24 lg:py-32">
+        <section id="features" className="w-full py-12 md:py-24 lg:py-32 mt-32">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div>
@@ -88,31 +68,31 @@ export default function LandingPage() {
                 </Link>
               </div>
             </div>
-            <div className="mx-auto grid max-w-5xl items-center gap-6 py-12  lg:gap-10">
+            <div className="mx-auto grid max-w-5xl items-center gap-6 py-12 lg:gap-10">
               {/* <div className="mx-auto aspect-video overflow-hidden bg-neutral-100 dark:bg-neutral-800 rounded-xl object-cover object-center sm:w-full lg:order-last" /> */}
               <div className="flex flex-col justify-center space-y-4">
-                <ul className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                <ul className="grid grid-cols-1 sm:grid-cols-3 gap-12 text-center">
                   <li>
-                    <div className="grid gap-1">
+                    <div className="flex flex-col items-center gap-2 ">
                       <h3 className="text-xl font-bold">Groups</h3>
-                      <p className="text-neutral-500 dark:text-neutral-400">
+                      <p className="text-neutral-500 dark:text-neutral-400 max-w-72 ">
                         Notify all users in a group when a coupon is about to
                         expire.
                       </p>
                     </div>
                   </li>
                   <li>
-                    <div className="grid gap-1">
+                    <div className="flex flex-col items-center gap-2">
                       <h3 className="text-xl font-bold">Email Notification</h3>
-                      <p className="text-neutral-500 dark:text-neutral-400">
+                      <p className="text-neutral-500 dark:text-neutral-400 max-w-72">
                         Email notification will be before a coupon expires.
                       </p>
                     </div>
                   </li>
                   <li>
-                    <div className="grid gap-1">
+                    <div className="flex flex-col items-center gap-2">
                       <h3 className="text-xl font-bold">Scanner</h3>
-                      <p className="text-neutral-500 dark:text-neutral-400">
+                      <p className="text-neutral-500 dark:text-neutral-400 max-w-72">
                         Fast and easy to use scanner to add coupon to the app.
                       </p>
                     </div>
