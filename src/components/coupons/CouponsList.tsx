@@ -59,7 +59,11 @@ export default function CouponsList({
 
   return (
     <div>
-      <Modal open={open} setOpen={setOpen} title={"Create Coupon"}>
+      <Modal
+        open={open}
+        setOpen={setOpen}
+        title={activeCoupon ? "Edit Coupon" : "Create Coupon"}
+      >
         <CouponForm
           groups={groups}
           groupsId={groupsId}
@@ -77,7 +81,7 @@ export default function CouponsList({
       {coupons.length === 0 ? (
         <EmptyState openModal={openModal} />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
           {coupons.map((coupon) => (
             <CouponItem key={coupon.id} coupon={coupon} groups={groups} />
           ))}
@@ -101,17 +105,23 @@ const CouponItem = ({
   };
   const closeModal = () => setOpen(false);
 
-  const formattedDate = coupon.expiration_date
-    ? new Date(coupon.expiration_date).toLocaleDateString()
-    : "";
+  // Assuming coupon.expiration_date is in the format YYYY-MM-DD
+  const formattedDate = coupon.expiration_date ? coupon.expiration_date : "";
+
+  // Parse the expiration date using a standardized format
   const date1 = new Date(formattedDate);
+
+  // Rest of the code remains the same
+
   const date2 = new Date();
   date1.setHours(0, 0, 0, 0);
   date2.setHours(0, 0, 0, 0);
+
   // Calculate difference in days
   const daysLeft = Math.floor(
     (date1.getTime() - date2.getTime()) / (1000 * 60 * 60 * 24)
   );
+
   const group = groups.find((group) => group.id === coupon.group);
   console.log(coupon.store);
 
@@ -133,7 +143,7 @@ const CouponItem = ({
     <div className="flex justify-between items-start py-4 px-4 rounded-lg border border-slate-300 dark:border-slate-700">
       <div>
         {coupon.discount_amount && coupon.discount_amount > 0 && (
-          <p className="text-md text-4xl font-semibold flex items-start mb-1">
+          <p className="text-md sm:text-4xl text-3xl font-semibold flex items-start mb-1">
             {formattedDiscountAmount}
             <span className="text-xl ml-1">₫</span>
           </p>
@@ -142,7 +152,7 @@ const CouponItem = ({
         <p className="text-lg">{coupon.code}</p>
         <p className="text-sm text-muted-foreground">Date</p>
         <p className="text-lg">
-          {formattedDate}{" "}
+          {date1.toLocaleDateString()}{" "}
           <span className="text-muted-foreground text-sm">
             {daysLeft != 0 ? `${daysLeft} days left` : "Expire today"}
           </span>

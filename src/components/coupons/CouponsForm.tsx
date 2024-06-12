@@ -58,19 +58,18 @@ const CouponForm = ({
   const couponForm = useForm<NewCouponParams>({
     defaultValues: {
       code: coupon?.code ?? "",
-      discount_amount: coupon?.discount_amount ?? 0,
+      discount_amount: coupon?.discount_amount,
       // expiration_date: coupon?.expiration_date ?? new Date(),
       expiration_date: expiration_date as unknown as Date,
       group: coupon?.group ?? groupsId ?? defaultGroup?.id,
-      note: coupon?.note ?? "",
+      note: coupon?.note,
       store: coupon?.store ?? "",
     },
   });
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
-    setValue,
+    formState: { errors, isSubmitting, isLoading },
     control,
   } = couponForm;
 
@@ -96,6 +95,7 @@ const CouponForm = ({
       // router.refresh();
       // postSuccess && postSuccess();
       toast.success(`Successfully ${action}d coupon!`);
+      if (action == "update" || action == "delete") closeModal && closeModal();
       // if (action === "delete") router.push(backpath);
     }
   };
@@ -114,27 +114,26 @@ const CouponForm = ({
       userId: coupon?.userId ?? "",
       note: data?.note ?? "",
       store: data?.store ?? "",
-      group: data.group ?? "default",
+      group: data.group ?? "Default",
       updatedAt: coupon?.updatedAt ?? new Date(),
       createdAt: coupon?.createdAt ?? new Date(),
       used: coupon?.used ?? false,
     };
 
     try {
-      startMutation(async () => {
-        const error = editing
-          ? await updateCouponAction(pendingCoupon)
-          : await createCouponAction(pendingCoupon);
+      const error = editing
+        ? await updateCouponAction(pendingCoupon)
+        : await createCouponAction(pendingCoupon);
 
-        const errorFormatted = {
-          error: error ?? "Error",
-          values: pendingCoupon,
-        };
-        // onSuccess(
-        //   editing ? "update" : "create",
-        //   error ? errorFormatted : undefined
-        // );
-      });
+      const errorFormatted = {
+        error: error ?? "Error",
+        values: pendingCoupon,
+      };
+      onSuccess(
+        editing ? "update" : "create",
+        error ? errorFormatted : undefined
+      );
+      couponForm.reset();
     } catch (e) {
       if (e instanceof z.ZodError) {
         // Handle Zod validation errors
@@ -146,7 +145,7 @@ const CouponForm = ({
   return (
     <div>
       <div className="mb-3">
-        <ImageInput couponForm={couponForm} />
+        {!editing && <ImageInput couponForm={couponForm} />}
       </div>
       <form onSubmit={handleSubmit(onSubmit)} className={"space-y-3"}>
         <div>
@@ -234,7 +233,7 @@ const CouponForm = ({
                 {errors.expiration_date.message}
               </p>
             )}
-          </div>{" "}
+          </div>
           <div className="flex-1">
             <Label
               className={cn(
@@ -339,10 +338,8 @@ const SaveButton = ({
   editing: Boolean;
   isSubmitting: boolean;
 }) => {
-  console.log("Editing: ", editing, "isSubmitting: ", isSubmitting);
   const isCreating = !editing && isSubmitting;
   const isUpdating = editing && isSubmitting;
-  console.log("isCreating: ", isCreating);
   return (
     <Button
       type="submit"

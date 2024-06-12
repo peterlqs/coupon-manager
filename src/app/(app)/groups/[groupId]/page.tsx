@@ -49,7 +49,7 @@ const Group = async ({ id }: { id: string }) => {
         <BackButton currentResource="groups" />
         <div className="p-4 pb-8 mt-4 rounded-lg border border-secondary">
           <GroupTop group={group} user_groups={user_groups} />
-          <div className="mx-4 flex gap-2 items-center">
+          <div className="mx-4 flex gap-2 items-center flex-wrap">
             <p>Members: </p>
             {usersEmail.map((user) => (
               <p className="bg-secondary rounded-lg px-2 py-1" key={user}>
@@ -61,9 +61,7 @@ const Group = async ({ id }: { id: string }) => {
       </div>
 
       <div className="relative mt-8 mx-4">
-        <h3 className="text-xl font-medium mb-4">
-          {group.name}&apos;s Coupons
-        </h3>
+        <h3 className="text-xl font-medium mb-4">Coupons</h3>
         <CouponsList coupons={coupons} groups={groups} groupsId={group.id} />
       </div>
     </Suspense>

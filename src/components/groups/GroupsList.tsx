@@ -50,17 +50,14 @@ export default function GroupsList({ groups }: { groups: Group[] }) {
 
 const GroupItem = ({ group }: { group: Group }) => {
   return (
-    <div className="flex justify-between items-center border-b border-border py-2">
-      <div>
-        <h3 className="font-semibold">{group.name}</h3>
+    <Link className="hover:font-bold" href={"/groups/" + group.id}>
+      <div className="flex justify-between items-center border-b border-border py-2 ">
+        <div>
+          <h3 className="">{group.name}</h3>
+        </div>
+        <Button variant={"link"}>Edit</Button>
       </div>
-      <div>
-        <Button variant={"link"} asChild>
-          <Link href={"/groups/" + group.id}>Edit</Link>
-          {/* <Link href={basePath + "/" + group.id}>Edit</Link> */}
-        </Button>
-      </div>
-    </div>
+    </Link>
   );
 };
 
