@@ -11,9 +11,11 @@ import {
 } from "@/lib/db/schema/coupons";
 import { getUserAuth } from "@/lib/auth/utils";
 import {
+  DeleteUserGroupParams,
   NewUserGroupParams,
   coupon_groups,
   insertUserGroupSchema,
+  userGroupIdSchema,
   user_groups,
 } from "@/lib/db/schema/associative";
 
@@ -32,26 +34,28 @@ export const createUserGroup = async (user: NewUserGroupParams) => {
     console.error(message);
     throw { error: message };
   }
-
-  // try {
-  //   const [c] = await db.insert(coupons).values(newCoupon).returning();
-
-  //   await db
-  //     .insert(coupon_groups)
-  //     .values({
-  //       coupon_id: c.id,
-  //       group_id: c.group,
-  //     })
-  //     .returning();
-
-  //   return { coupon: c };
-  // } catch (err) {
-  //   const message = (err as Error).message ?? "Error, please try again";
-  //   console.error(message);
-  //   throw { error: message };
-  // }
 };
 
+export const deleteUserGroup = async (input: DeleteUserGroupParams) => {
+  const { session } = await getUserAuth();
+  // const { user: groupId } = userGroupIdSchema.parse({ id });
+  const { user_email: userEmail, group_id: groupId } = input;
+  try {
+    await db
+      .delete(user_groups)
+      .where(
+        and(
+          eq(user_groups.user_email, userEmail),
+          eq(user_groups.group_id, groupId)
+        )
+      );
+    return { success: true };
+  } catch (err) {
+    const message = (err as Error).message ?? "Error, please try again";
+    console.error(message);
+    throw { error: message };
+  }
+};
 // export const updateCoupon = async (
 //   id: CouponId,
 //   coupon: UpdateCouponParams

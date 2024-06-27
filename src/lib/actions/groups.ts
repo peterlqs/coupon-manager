@@ -13,8 +13,11 @@ import {
   groupIdSchema,
   insertGroupParams,
   insertGroupSchema,
+  updateGroupParams,
   updateGroupSchema,
 } from "@/lib/db/schema/groups";
+import { createUserGroupAction, deleteUserGroupAction } from "./associative";
+import { getUserAuth } from "../auth/utils";
 
 const handleErrors = (e: unknown) => {
   const errMsg = "Error, please try again.";
@@ -28,23 +31,63 @@ const handleErrors = (e: unknown) => {
 
 const revalidateGroups = () => revalidatePath("/groups");
 
-export const createGroupAction = async (input: NewGroupParams) => {
+export const createGroupAction = async (
+  input: NewGroupParams,
+  users?: string[]
+) => {
   try {
+    const { session } = await getUserAuth();
     const payload = insertGroupParams.parse(input);
-    // await createGroup(payload);
     const result = await createGroup(payload);
+    // Create associtive users
+    console.log(users);
+    if (users) {
+      users.map(async (user) => {
+        await createUserGroupAction({
+          user_id: session?.user.id!,
+          user_email: user,
+          group_id: result.group.id,
+        });
+      });
+    }
     revalidateGroups();
-    return result.group;
   } catch (e) {
     return handleErrors(e);
   }
 };
 
-export const updateGroupAction = async (input: UpdateGroupParams) => {
+export const updateGroupAction = async (
+  input: UpdateGroupParams,
+  users?: string[],
+  user_emails?: string[] // Original users
+) => {
   try {
-    const payload = updateGroupSchema.parse(input);
+    const { session } = await getUserAuth();
+    const payload = updateGroupParams.parse(input);
     await updateGroup(payload.id, payload);
-    revalidateGroups();
+    // Update associtive users
+    // Removed users (user_emails - users)
+    const removedUsers = user_emails?.filter((x) => !users?.includes(x));
+    // Added users (users - user_emails)
+    const addedUsers = users?.filter((x) => !user_emails?.includes(x));
+    // Update
+    if (removedUsers) {
+      removedUsers.map(async (user_email) => {
+        await deleteUserGroupAction({
+          user_email: user_email,
+          group_id: input.id,
+        });
+      });
+    }
+    if (addedUsers) {
+      addedUsers.map(async (user_email) => {
+        await createUserGroupAction({
+          user_id: session?.user.id!,
+          user_email: user_email,
+          group_id: input.id,
+        });
+      });
+    }
   } catch (e) {
     return handleErrors(e);
   }

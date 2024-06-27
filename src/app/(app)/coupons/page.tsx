@@ -13,25 +13,20 @@ import { getUser } from "@/lib/api/users/queries";
 import { createGroupAction } from "@/lib/actions/groups";
 import { createUserAction } from "@/lib/actions/users";
 import { Group } from "@/lib/db/schema/groups";
+import CouponList from "@/components/coupons/CouponList";
+import { Coupon } from "@/lib/db/schema/coupons";
 
 export const revalidate = 0;
 
 export default async function CouponsPage() {
   // Check if user is added in Supabase yet
   const user = await getUser();
-
   if (!user.user[0]) {
     await createUserAction();
-    const pendingGroup: Group = {
-      name: "Default",
-      description: "This group is created by default",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      id: "",
-      userId: "",
-    };
-    await createGroupAction(pendingGroup);
+    await createDefaultGroup();
   }
+  const { coupons } = await getCoupons();
+  const { groups } = await getGroups();
 
   return (
     <main>
@@ -43,18 +38,20 @@ export default async function CouponsPage() {
             expires.
           </p>
         </div>
-        <Coupons />
+        <Coupons coupons={coupons} groups={groups} />
       </div>
     </main>
   );
 }
 
-const Coupons = async () => {
+export const Coupons = async ({
+  coupons,
+  groups,
+}: {
+  coupons: Coupon[];
+  groups: Group[];
+}) => {
   await checkAuth();
-
-  const { coupons } = await getCoupons();
-  const { groups } = await getGroups();
-
   // Separate coupons to expired ones and active ones based on expiration_date
   const expiredCoupons = coupons.filter((coupon) => {
     if (coupon.expiration_date && coupon.used === false) {
@@ -90,15 +87,39 @@ const Coupons = async () => {
           <TabsTrigger value="used">Used Coupons</TabsTrigger>
         </TabsList>
         <TabsContent value="active">
-          <CouponsList coupons={activeCoupons} groups={groups} />
+          <CouponsList
+            coupons={activeCoupons}
+            groups={groups}
+            groupId={groups[0].id}
+          />
         </TabsContent>
         <TabsContent value="expired">
-          <CouponsList coupons={expiredCoupons} groups={groups} />
+          <CouponsList
+            coupons={expiredCoupons}
+            groups={groups}
+            groupId={groups[0].id}
+          />
         </TabsContent>
         <TabsContent value="used">
-          <CouponsList coupons={usedCoupons} groups={groups} />
+          <CouponsList
+            coupons={usedCoupons}
+            groups={groups}
+            groupId={groups[0].id}
+          />
         </TabsContent>
       </Tabs>
     </Suspense>
   );
 };
+
+async function createDefaultGroup() {
+  const pendingGroup: Group = {
+    name: "Default",
+    description: "This group is created by default",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    id: "",
+    userId: "",
+  };
+  await createGroupAction(pendingGroup);
+}

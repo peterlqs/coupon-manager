@@ -14,7 +14,6 @@ import { user_groups } from "@/lib/db/schema/associative";
 
 export const createGroup = async (group: NewGroupParams) => {
   const { session } = await getUserAuth();
-  console.log(session?.user);
   const newGroup = insertGroupSchema.parse({
     ...group,
     userId: session?.user.id!,
@@ -46,7 +45,6 @@ export const updateGroup = async (id: GroupId, group: UpdateGroupParams) => {
   const newGroup = updateGroupSchema.parse({
     ...group,
     userId: session?.user.id!,
-    id: groupId,
   });
   try {
     const [g] = await db

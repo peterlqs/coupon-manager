@@ -27,7 +27,6 @@ const Furniture = async ({ id }: { id: string }) => {
   await checkAuth();
 
   const { furniture, models } = await getFurnitureByIdWithModels(id);
-
   if (!furniture) notFound();
   return (
     <Suspense fallback={<Loading />}>

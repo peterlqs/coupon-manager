@@ -1,60 +1,50 @@
 import { z } from "zod";
+
 import { useState, useTransition } from "react";
-import { SubmitHandler, useForm } from "react-hook-form";
+import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useValidatedForm } from "@/lib/hooks/useValidatedForm";
 
 import { type Action, cn } from "@/lib/utils";
+import { type TAddOptimistic } from "@/app/(app)/groups/useOptimisticGroups";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useBackPath } from "@/components/shared/BackButton";
 
-import {
-  type Group,
-  NewGroupParams,
-  insertGroupParams,
-} from "@/lib/db/schema/groups";
+import { type Group, insertGroupParams } from "@/lib/db/schema/groups";
 import {
   createGroupAction,
   deleteGroupAction,
   updateGroupAction,
 } from "@/lib/actions/groups";
-import { createUserGroupAction } from "@/lib/actions/associative";
 import { UserGroup } from "@/lib/db/schema/associative";
 import { XIcon } from "lucide-react";
+import { getGroupById } from "@/lib/api/groups/queries";
 
 const GroupForm = ({
   group,
-  user_groups,
+  user_emails,
   openModal,
   closeModal,
+  addOptimistic,
   postSuccess,
 }: {
   group?: Group | null;
-  user_groups?: UserGroup[];
+  user_emails?: string[];
   openModal?: (group?: Group) => void;
   closeModal?: () => void;
+  addOptimistic?: TAddOptimistic;
   postSuccess?: () => void;
 }) => {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<NewGroupParams>({
-    defaultValues: {
-      name: group?.name ?? "",
-      description: group?.description ?? "",
-    },
-  });
-
-  // map user_groups to a list of user emails
-  const [users, setUsers] = useState<string[]>(
-    user_groups?.map((user) => user.user_email ?? "") ?? []
-  );
+  // map user_emails to a list of user emails
+  const [users, setUsers] = useState<string[]>(user_emails ? user_emails : []);
   const [inputUserValue, setInputUserValue] = useState("");
 
+  const { errors, hasErrors, setErrors, handleChange } =
+    useValidatedForm<Group>(insertGroupParams);
   const editing = !!group?.id;
 
   const [isDeleting, setIsDeleting] = useState(false);
@@ -76,53 +66,68 @@ const GroupForm = ({
     } else {
       router.refresh();
       postSuccess && postSuccess();
-      toast.success(`Successfully ${action}d group!`);
+      toast.success(`Group ${action}d!`);
       if (action === "delete") router.push(backpath);
     }
   };
 
-  // const onSubmit = async (data: NewCouponParams) => {
-  const onSubmit: SubmitHandler<NewGroupParams> = async (data) => {
-    // Parse the form data
-    const pendingGroup: Group = {
-      name: data.name,
-      description: data.description,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      id: group?.id ?? "",
-      userId: group?.userId ?? "",
-    };
+  const handleSubmit = async (data: FormData) => {
+    setErrors(null);
 
-    const result = await createGroupAction(pendingGroup);
-    // Create associtive users
-    if (typeof result !== "string") {
-      console.log(users);
-      for (const user of users) {
-        const error = await createUserGroupAction({
-          user_email: user,
-          group_id: result.id,
-        });
-        if (error) {
-          onSuccess("create", {
-            error: error,
-            values: pendingGroup,
-          });
-          return;
-        }
-      }
+    const payload = Object.fromEntries(data.entries());
+
+    const groupParsed = await insertGroupParams.safeParseAsync({ ...payload });
+
+    if (!groupParsed.success) {
+      setErrors(groupParsed?.error.flatten().fieldErrors);
+      return;
     }
-    // if type string => error
-    if (typeof result === "string") {
-      const errorFormatted = {
-        error: result ?? "Error",
-        values: pendingGroup,
-      };
-      onSuccess("create", result ? errorFormatted : undefined);
+
+    closeModal && closeModal();
+    const values = groupParsed.data;
+    const pendingGroup: Group = {
+      updatedAt: group?.updatedAt ?? new Date(),
+      createdAt: group?.createdAt ?? new Date(),
+      userId: group?.userId ?? "",
+      id: group?.id ?? "",
+      ...values,
+    };
+    try {
+      startMutation(async () => {
+        addOptimistic &&
+          addOptimistic({
+            data: pendingGroup,
+            action: editing ? "update" : "create",
+          });
+        const error = editing
+          ? await updateGroupAction(
+              {
+                ...values,
+                id: group.id,
+              },
+              users,
+              user_emails
+            )
+          : await createGroupAction(values, users);
+
+        const errorFormatted = {
+          error: error ?? "Error",
+          values: pendingGroup,
+        };
+        onSuccess(
+          editing ? "update" : "create",
+          error ? errorFormatted : undefined
+        );
+      });
+    } catch (e) {
+      if (e instanceof z.ZodError) {
+        setErrors(e.flatten().fieldErrors);
+      }
     }
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className={"space-y-8"}>
+    <form action={handleSubmit} onChange={handleChange} className={"space-y-3"}>
       {/* Schema fields start */}
       <div>
         <Label
@@ -135,14 +140,14 @@ const GroupForm = ({
         </Label>
         <Input
           type="text"
+          name="name"
           className={cn(errors?.name ? "ring ring-destructive" : "")}
-          {...register("name", { required: true })}
+          defaultValue={group?.name ?? ""}
         />
         {errors?.name && (
-          <p className="text-xs text-destructive mt-2">{errors.name.message}</p>
+          <p className="text-xs text-destructive mt-2">{errors.name[0]}</p>
         )}
       </div>
-
       <div>
         <Label
           className={cn(
@@ -150,16 +155,20 @@ const GroupForm = ({
             errors?.description ? "text-destructive" : ""
           )}
         >
-          Description (optional)
+          Description{" "}
+          <span className="text-sm text-slate-600 dark:text-slate-400">
+            (optional)
+          </span>
         </Label>
         <Input
           type="text"
+          name="description"
           className={cn(errors?.description ? "ring ring-destructive" : "")}
-          {...register("description", { required: false })}
+          defaultValue={group?.description ?? ""}
         />
         {errors?.description && (
           <p className="text-xs text-destructive mt-2">
-            {errors.description.message}
+            {errors.description[0]}
           </p>
         )}
       </div>
@@ -204,30 +213,29 @@ const GroupForm = ({
           ))}
         </div>
       </div>
-
-      {/* Add more fields for your group schema */}
-
       {/* Schema fields end */}
 
       {/* Save Button */}
-      <SaveButton editing={editing} errors={errors ? false : true} />
+      <SaveButton errors={hasErrors} editing={editing} />
 
       {/* Delete Button */}
       {editing ? (
         <Button
           type="button"
-          disabled={isDeleting || isSubmitting}
+          disabled={isDeleting || pending || hasErrors}
           variant={"destructive"}
           onClick={() => {
             setIsDeleting(true);
             closeModal && closeModal();
             startMutation(async () => {
-              const error = await deleteGroupAction(group?.id);
+              addOptimistic && addOptimistic({ action: "delete", data: group });
+              const error = await deleteGroupAction(group.id);
               setIsDeleting(false);
               const errorFormatted = {
                 error: error ?? "Error",
                 values: group,
               };
+
               onSuccess("delete", error ? errorFormatted : undefined);
             });
           }}
@@ -248,14 +256,15 @@ const SaveButton = ({
   editing: Boolean;
   errors: boolean;
 }) => {
-  const isCreating = !editing && errors;
-  const isUpdating = editing && errors;
+  const { pending } = useFormStatus();
+  const isCreating = pending && editing === false;
+  const isUpdating = pending && editing === true;
   return (
     <Button
       type="submit"
       className="mr-2"
-      disabled={isCreating || isUpdating}
-      aria-disabled={isCreating || isUpdating}
+      disabled={isCreating || isUpdating || errors}
+      aria-disabled={isCreating || isUpdating || errors}
     >
       {editing
         ? `Sav${isUpdating ? "ing..." : "e"}`

@@ -1,1 +1,0 @@
-ALTER TABLE "coupons" ADD COLUMN "group" varchar(255);

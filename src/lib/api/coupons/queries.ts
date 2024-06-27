@@ -14,6 +14,16 @@ export const getCoupons = async () => {
   return { coupons: f };
 };
 
+export const getCouponById = async (id: string) => {
+  const { session } = await getUserAuth();
+  const rows = await db
+    .select()
+    .from(coupons)
+    .where(and(eq(coupons.id, id), eq(coupons.userId, session?.user.id!)));
+
+  return { coupon: rows[0] };
+};
+
 // Get coupons that has expiration date less than {days} day from today
 export const getAllCouponsByDays = async (days: number) => {
   const today = new Date();

@@ -4,7 +4,8 @@
     "shadcn-ui",
     "drizzle",
     "clerk",
-    "resend"
+    "resend",
+    "stripe"
   ],
   "preferredPackageManager": "npm",
   "t3": false,

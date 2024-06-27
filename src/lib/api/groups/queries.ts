@@ -1,51 +1,62 @@
 import { db } from "@/lib/db/index";
-import { eq, and } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 import { getUserAuth } from "@/lib/auth/utils";
-import { groups } from "@/lib/db/schema/groups";
-import { coupons } from "@/lib/db/schema/coupons";
+import { groupIdSchema, groups } from "@/lib/db/schema/groups";
+import { CompleteCoupon, coupons } from "@/lib/db/schema/coupons";
 import { coupon_groups, user_groups } from "@/lib/db/schema/associative";
 
 export const getGroups = async () => {
   const { session } = await getUserAuth();
 
   const rows = await db
-    .selectDistinct({
-      id: groups.id,
-      name: groups.name,
-      description: groups.description,
-      createdAt: groups.createdAt,
-      updatedAt: groups.updatedAt,
-      userId: groups.userId,
-    })
+    .select()
     .from(groups)
     .innerJoin(
       user_groups,
       eq(user_groups.group_id, groups.id) // Join on the shared group_id column
     )
-    .where(eq(user_groups.user_email, session?.user.email || "")); // Filter for specific user
+    .where(eq(user_groups.user_email, session?.user.email || "")) // Filter for specific user
+    .leftJoin(coupon_groups, eq(groups.id, coupon_groups.group_id));
 
-  // .innerJoin(user_groups, eq(user_groups.group_id, groups.id))
-  // .where(eq(user_groups.user_id, session?.user.id!));
   const f = rows;
-  return { groups: f };
+  const allGroups = f.map((item) => item.groups);
+  const allCouponGroups = f.map((item) => item.coupon_groups);
+  return { groups: allGroups, couponGroups: allCouponGroups };
 };
 
-export const getGroupByIdWithCoupons = async (id: string) => {
+export const getGroupById = async (id: string) => {
   const { session } = await getUserAuth();
   const rows = await db
     .select()
     .from(groups)
-    .innerJoin(coupon_groups, eq(groups.id, coupon_groups.group_id))
-    .innerJoin(coupons, eq(coupons.id, coupon_groups.coupon_id))
-    .where(eq(groups.id, id));
+    .where(and(eq(groups.id, id), eq(groups.userId, session?.user.id!)));
 
-  // get all the coupons from f
-  // const f = rows[0].groups!;
-  // const fm = rows.map((item) => item.coupons !== null && item.coupons)
+  return { group: rows[0] };
+};
 
-  const couponList = rows.map((item) => item.coupons);
-  // get all the groups from f
-  const groupList = rows.map((item) => item.groups);
-  // return { coupons: couponList, group: groupList[0] };
-  return { coupons: couponList };
+export const getGroupByIdWithCoupons = async (id: string) => {
+  const { session } = await getUserAuth();
+  const { id: groupId } = groupIdSchema.parse({ id });
+
+  const rows = await db
+    .select()
+    .from(groups)
+    .innerJoin(user_groups, eq(user_groups.group_id, groups.id))
+    .where(
+      and(
+        eq(user_groups.user_email, session?.user.email || ""),
+        eq(groups.id, groupId)
+      )
+    )
+    // .leftJoin(coupon_groups, eq(groups.id, coupon_groups.group_id))
+    // .leftJoin(coupons, eq(coupons.groupId, coupon_groups.group_id));
+    .leftJoin(coupons, eq(coupons.groupId, groups.id));
+
+  // console.log("---------\n", rows);
+  if (rows.length === 0) return {};
+  const f = rows[0].groups;
+  const fm = rows
+    .filter((item) => item.coupons !== null)
+    .map((item) => item.coupons) as CompleteCoupon[];
+  return { coupons: fm, group: f };
 };

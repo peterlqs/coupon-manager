@@ -21,12 +21,11 @@ export const createCoupon = async (coupon: NewCouponParams) => {
 
   try {
     const [c] = await db.insert(coupons).values(newCoupon).returning();
-
     await db
       .insert(coupon_groups)
       .values({
         coupon_id: c.id,
-        group_id: c.group,
+        group_id: c.groupId,
       })
       .returning();
 

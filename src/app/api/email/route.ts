@@ -11,6 +11,7 @@ export async function POST(request: Request) {
       from: "Quan Ng <hi@longquan.me>",
       to: [email],
       subject: subject,
+
       react: EmailTemplate({ message: message }),
       text: "Email powered by Resend.",
     });

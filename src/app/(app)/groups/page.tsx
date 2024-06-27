@@ -1,13 +1,8 @@
 import { Suspense } from "react";
 
 import Loading from "@/app/loading";
-import FurnitureList from "@/components/furnitures/FurnitureList";
-import { getFurnitures } from "@/lib/api/furnitures/queries";
-
-import { checkAuth } from "@/lib/auth/utils";
-import { getCoupons } from "@/lib/api/coupons/queries";
+import GroupList from "@/components/groups/GroupList";
 import { getGroups } from "@/lib/api/groups/queries";
-import GroupsList from "@/components/groups/GroupsList";
 
 export const revalidate = 0;
 
@@ -25,13 +20,30 @@ export default async function GroupsPage() {
 }
 
 const Groups = async () => {
-  await checkAuth();
-
-  const { groups } = await getGroups();
+  const { groups, couponGroups } = await getGroups();
+  // Sort the groups by createdAt descending, the group named Default always first
+  groups.sort((a, b) => {
+    if (a.name === "Default") return -1;
+    if (b.name === "Default") return 1;
+    if (a.createdAt && b.createdAt) {
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    }
+    return 0;
+  });
+  // Filter out null values in couponGroups
+  const filteredCG = couponGroups.map((item) => {
+    if (item === null)
+      return {
+        id: "",
+        coupon_id: "",
+        group_id: "",
+      };
+    return item;
+  });
 
   return (
     <Suspense fallback={<Loading />}>
-      <GroupsList groups={groups} />
+      <GroupList groups={groups} couponGroups={filteredCG} />
     </Suspense>
   );
 };

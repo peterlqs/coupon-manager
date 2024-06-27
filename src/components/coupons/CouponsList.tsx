@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import {
   CameraIcon,
   CheckIcon,
+  CopyIcon,
   EditIcon,
   PencilIcon,
   PlusIcon,
@@ -23,36 +24,52 @@ import { Input } from "../ui/input";
 import ImageInput from "./ImageInput";
 import { updateCouponAction } from "@/lib/actions/coupons";
 import { set } from "date-fns";
+import CouponsForm from "./CouponsForm";
+import { toast } from "sonner";
+import { useOptimisticCoupons } from "@/app/(app)/coupons/useOptimisticCoupons";
 
 type TOpenModal = () => void;
 
 export const schema = z.object({
   resume: z.instanceof(File).refine((file) => file.size < 7000000, {
-    message: "Your resume must be less than 7MB.",
+    message: "Your picture must be less than 7MB.",
   }),
 });
 
 export default function CouponsList({
   coupons,
   groups,
-  groupsId,
+  groupId,
 }: {
   coupons: Coupon[];
   groups: Group[];
-  groupsId?: GroupId;
+  groupId?: GroupId;
 }) {
+  const { optimisticCoupons, addOptimisticCoupon } = useOptimisticCoupons(
+    coupons,
+    groups
+  );
   const [open, setOpen] = useState(false);
   const [activeCoupon, setActiveCoupon] = useState<Coupon | null>(null);
-  const openModal = () => setOpen(true);
+  // const openModal = () => setOpen(true);
+  const openModal = (coupon?: Coupon) => {
+    setOpen(true);
+    coupon ? setActiveCoupon(coupon) : setActiveCoupon(null);
+  };
   const closeModal = () => setOpen(false);
 
   // Sort the coupons by expiration_date
   coupons.sort((a, b) => {
     if (a.expiration_date && b.expiration_date) {
-      return (
+      const expirationDateComparison =
         new Date(a.expiration_date).getTime() -
-        new Date(b.expiration_date).getTime()
-      );
+        new Date(b.expiration_date).getTime();
+      if (expirationDateComparison !== 0) {
+        return expirationDateComparison;
+      }
+    }
+    if (a.createdAt && b.createdAt) {
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     }
     return 0;
   });
@@ -64,25 +81,30 @@ export default function CouponsList({
         setOpen={setOpen}
         title={activeCoupon ? "Edit Coupon" : "Create Coupon"}
       >
-        <CouponForm
-          groups={groups}
-          groupsId={groupsId}
+        <CouponsForm
           coupon={activeCoupon}
+          addOptimistic={addOptimisticCoupon}
           openModal={openModal}
           closeModal={closeModal}
+          groups={groups}
+          groupId={groupId}
         />
       </Modal>
       <div className="absolute right-0 top-0 gap-2 flex">
-        <Button onClick={openModal} variant={"default"} size={"default"}>
+        <Button
+          onClick={() => openModal()}
+          variant={"default"}
+          size={"default"}
+        >
           <PlusIcon className="h-4" />
           Add
         </Button>
       </div>
-      {coupons.length === 0 ? (
+      {optimisticCoupons.length === 0 ? (
         <EmptyState openModal={openModal} />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
-          {coupons.map((coupon) => (
+          {optimisticCoupons.map((coupon) => (
             <CouponItem key={coupon.id} coupon={coupon} groups={groups} />
           ))}
         </div>
@@ -122,8 +144,7 @@ const CouponItem = ({
     (date1.getTime() - date2.getTime()) / (1000 * 60 * 60 * 24)
   );
 
-  const group = groups.find((group) => group.id === coupon.group);
-  console.log(coupon.store);
+  const group = groups.find((group) => group.id === coupon.groupId);
 
   const formattedDiscountAmount = coupon.discount_amount?.toLocaleString(
     "vi-VN",
@@ -139,22 +160,38 @@ const CouponItem = ({
     setIsLoading(false);
   };
 
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success("Copied to clipboard");
+  };
+
   return (
     <div className="flex justify-between items-start py-4 px-4 rounded-lg border border-slate-300 dark:border-slate-700">
       <div>
         {coupon.discount_amount && coupon.discount_amount > 0 && (
           <p className="text-md sm:text-4xl text-3xl font-semibold flex items-start mb-1">
             {formattedDiscountAmount}
-            <span className="text-xl ml-1">₫</span>
+            {/* <span className="text-xl ml-1">₫</span> */}
           </p>
         )}
         <p className="text-sm text-muted-foreground">Code</p>
-        <p className="text-lg">{coupon.code}</p>
+        <button
+          onClick={() => copyToClipboard(coupon.code)}
+          className="text-lg flex gap-1 items-center"
+        >
+          {coupon.code} <CopyIcon className="h-4" />
+        </button>
         <p className="text-sm text-muted-foreground">Date</p>
         <p className="text-lg">
           {date1.toLocaleDateString()}{" "}
           <span className="text-muted-foreground text-sm">
-            {daysLeft != 0 ? `${daysLeft} days left` : "Expire today"}
+            {daysLeft < 0
+              ? "Expired"
+              : daysLeft == 1
+              ? `${daysLeft} day left`
+              : daysLeft != 0
+              ? `${daysLeft} days left`
+              : "Expire today"}
           </span>
         </p>
         {coupon.store && (

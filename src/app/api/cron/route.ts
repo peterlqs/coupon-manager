@@ -44,7 +44,7 @@ async function handler(request: Request) {
     for (const day in groupedCoupons) {
       message += `**Expiring in ${day} day(s):**\n`;
       for (const coupon of groupedCoupons[day]) {
-        message += `- Code: ${coupon.code} - Store: ${coupon.store} - Discount: ${coupon.discount_amount} - Group: ${coupon.group} \n`;
+        message += `- Code: ${coupon.code} - Store: ${coupon.store} - Discount: ${coupon.discount_amount} - Group: ${coupon.groupId} \n`;
       }
       message += "\n";
     }

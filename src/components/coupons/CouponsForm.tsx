@@ -31,18 +31,23 @@ import {
 } from "../ui/select";
 import { Group, GroupId } from "@/lib/db/schema/groups";
 import ImageInput from "./ImageInput";
+import { TAddOptimistic } from "@/app/(app)/coupons/useOptimisticCoupons";
 
 const CouponForm = ({
   groups,
-  groupsId,
+  groupId,
   coupon,
   openModal,
+  addOptimistic,
+
   closeModal,
   postSuccess,
 }: {
   groups?: Group[];
-  groupsId?: GroupId;
+  groupId?: GroupId;
   coupon?: Coupon | null;
+  addOptimistic?: TAddOptimistic;
+
   openModal?: (coupon?: Coupon) => void;
   closeModal?: () => void;
   postSuccess?: () => void;
@@ -51,21 +56,20 @@ const CouponForm = ({
   const expiration_date = coupon?.expiration_date
     ? new Date(coupon.expiration_date).toISOString().split("T")[0]
     : "";
-
   // Get Default group id
   const defaultGroup = groups?.find((group) => group.name === "Default");
-
   const couponForm = useForm<NewCouponParams>({
     defaultValues: {
       code: coupon?.code ?? "",
       discount_amount: coupon?.discount_amount,
       // expiration_date: coupon?.expiration_date ?? new Date(),
       expiration_date: expiration_date as unknown as Date,
-      group: coupon?.group ?? groupsId ?? defaultGroup?.id,
+      groupId: coupon?.groupId ?? groupId ?? defaultGroup?.id,
       note: coupon?.note,
       store: coupon?.store ?? "",
     },
   });
+
   const {
     register,
     handleSubmit,
@@ -92,48 +96,57 @@ const CouponForm = ({
         description: data?.error ?? "Error",
       });
     } else {
-      // router.refresh();
-      // postSuccess && postSuccess();
+      router.refresh();
+      postSuccess && postSuccess();
       toast.success(`Successfully ${action}d coupon!`);
-      if (action == "update" || action == "delete") closeModal && closeModal();
       // if (action === "delete") router.push(backpath);
     }
   };
 
   // const onSubmit = async (data: NewCouponParams) => {
   const onSubmit: SubmitHandler<NewCouponParams> = async (data) => {
-    // Parse the form data
     const pendingCoupon: Coupon = {
+      id: coupon?.id ?? "",
+      userId: coupon?.userId ?? "",
+      updatedAt: coupon?.updatedAt ?? new Date(),
+      createdAt: coupon?.createdAt ?? new Date(),
       code: data.code,
       discount_amount:
         data.discount_amount && !isNaN(parseFloat(String(data.discount_amount)))
           ? parseFloat(String(data.discount_amount))
           : 0,
       expiration_date: new Date(data.expiration_date!),
-      id: coupon?.id ?? "",
-      userId: coupon?.userId ?? "",
       note: data?.note ?? "",
       store: data?.store ?? "",
-      group: data.group ?? "Default",
-      updatedAt: coupon?.updatedAt ?? new Date(),
-      createdAt: coupon?.createdAt ?? new Date(),
+      groupId: data.groupId ?? "Default",
       used: coupon?.used ?? false,
+      // ...data,
     };
 
-    try {
-      const error = editing
-        ? await updateCouponAction(pendingCoupon)
-        : await createCouponAction(pendingCoupon);
+    closeModal && closeModal();
 
-      const errorFormatted = {
-        error: error ?? "Error",
-        values: pendingCoupon,
-      };
-      onSuccess(
-        editing ? "update" : "create",
-        error ? errorFormatted : undefined
-      );
-      couponForm.reset();
+    try {
+      startMutation(async () => {
+        addOptimistic &&
+          addOptimistic({
+            data: pendingCoupon,
+            action: editing ? "update" : "create",
+          });
+
+        const error = editing
+          ? await updateCouponAction(pendingCoupon)
+          : await createCouponAction(pendingCoupon);
+
+        const errorFormatted = {
+          error: error ?? "Error",
+          values: pendingCoupon,
+        };
+        onSuccess(
+          editing ? "update" : "create",
+          error ? errorFormatted : undefined
+        );
+        couponForm.reset();
+      });
     } catch (e) {
       if (e instanceof z.ZodError) {
         // Handle Zod validation errors
@@ -181,7 +194,7 @@ const CouponForm = ({
             <Input
               type="number"
               className={cn(errors?.code ? "ring ring-destructive" : "")}
-              {...register("discount_amount", { required: false })}
+              {...register("discount_amount", { required: true })}
             />
             {errors?.discount_amount && (
               <p className="text-xs text-destructive mt-2">
@@ -245,14 +258,16 @@ const CouponForm = ({
             </Label>
             <Controller
               control={control}
-              name="group"
+              name="groupId"
               render={({ field: { onChange, value } }) => (
                 <Select
-                  defaultValue={coupon?.group ?? groupsId ?? defaultGroup?.id}
+                  defaultValue={coupon?.groupId ?? groupId ?? defaultGroup?.id}
                   onValueChange={onChange}
                 >
                   <SelectTrigger
-                    className={cn(errors?.group ? "ring ring-destructive" : "")}
+                    className={cn(
+                      errors?.groupId ? "ring ring-destructive" : ""
+                    )}
                   >
                     <SelectValue placeholder="Select a group" />
                   </SelectTrigger>
@@ -270,9 +285,9 @@ const CouponForm = ({
                 </Select>
               )}
             />
-            {errors?.group && (
+            {errors?.groupId && (
               <p className="text-xs text-destructive mt-2">
-                {errors.group.message}
+                {errors.groupId.message}
               </p>
             )}
           </div>
@@ -311,7 +326,9 @@ const CouponForm = ({
               setIsDeleting(true);
               closeModal && closeModal();
               startMutation(async () => {
-                const error = await deleteCouponAction(coupon?.id);
+                addOptimistic &&
+                  addOptimistic({ action: "delete", data: coupon });
+                const error = await deleteCouponAction(coupon.id);
                 setIsDeleting(false);
                 const errorFormatted = {
                   error: error ?? "Error",
