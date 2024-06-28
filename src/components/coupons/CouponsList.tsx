@@ -27,6 +27,7 @@ import { set } from "date-fns";
 import CouponsForm from "./CouponsForm";
 import { toast } from "sonner";
 import { useOptimisticCoupons } from "@/app/(app)/coupons/useOptimisticCoupons";
+import { useAuth } from "@clerk/nextjs";
 
 type TOpenModal = () => void;
 
@@ -154,9 +155,9 @@ const CouponItem = ({
     }
   );
 
-  const usedCoupon = async () => {
+  const toggleCoupon = async () => {
     setIsLoading(true);
-    await updateCouponAction({ ...coupon, used: true });
+    await updateCouponAction({ ...coupon, used: !coupon.used });
     setIsLoading(false);
   };
 
@@ -164,6 +165,8 @@ const CouponItem = ({
     navigator.clipboard.writeText(text);
     toast.success("Copied to clipboard");
   };
+
+  const { userId } = useAuth();
 
   return (
     <div className="flex justify-between items-start py-4 px-4 rounded-lg border border-slate-300 dark:border-slate-700">
@@ -221,13 +224,15 @@ const CouponItem = ({
           size={"icon"}
           className=""
           disabled={isLoading}
-          onClick={usedCoupon}
+          onClick={toggleCoupon}
         >
           <CheckIcon className="h-4" />
         </Button>
+        {/* {coupon.userId === userId && ( */}
         <Button variant={"link"} className="" onClick={() => setOpen(true)}>
           Edit
         </Button>
+        {/* )} */}
       </div>
     </div>
   );

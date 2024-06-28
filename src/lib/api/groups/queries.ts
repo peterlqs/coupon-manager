@@ -19,7 +19,12 @@ export const getGroups = async () => {
     .leftJoin(coupon_groups, eq(groups.id, coupon_groups.group_id));
 
   const f = rows;
-  const allGroups = f.map((item) => item.groups);
+  const allGroups = f
+    .map((item) => item.groups)
+    // Remove duplicates by id
+    .filter(
+      (item, index, self) => self.findIndex((t) => t.id === item.id) === index
+    );
   const allCouponGroups = f.map((item) => item.coupon_groups);
   return { groups: allGroups, couponGroups: allCouponGroups };
 };

@@ -28,7 +28,7 @@ export default async function OptimisticGroup({
     setOptimisticGroup({ ...input.data });
 
   return (
-    <div className="m-4">
+    <div className="">
       <Modal open={open} setOpen={setOpen}>
         <GroupForm
           group={optimisticGroup}

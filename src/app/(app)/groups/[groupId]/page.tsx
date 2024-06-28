@@ -44,7 +44,7 @@ const Group = async ({ id }: { id: string }) => {
         {/* <GroupTop group={group} user_groups={user_groups} /> */}
         <OptimisticGroup group={group} users_email={usersEmail} />
       </div>
-      <div className="relative mt-8 mx-4">
+      <div className="relative mt-8">
         <h3 className="text-xl font-medium mb-4">
           {group.name}&apos;s Coupons
         </h3>

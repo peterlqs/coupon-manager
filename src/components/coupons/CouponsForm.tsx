@@ -157,9 +157,9 @@ const CouponForm = ({
 
   return (
     <div>
-      <div className="mb-3">
+      {/* <div className="mb-3">
         {!editing && <ImageInput couponForm={couponForm} />}
-      </div>
+      </div> */}
       <form onSubmit={handleSubmit(onSubmit)} className={"space-y-3"}>
         <div>
           <Label

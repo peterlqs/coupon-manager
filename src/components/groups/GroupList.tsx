@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import GroupForm from "./GroupForm";
 import { PlusIcon } from "lucide-react";
 import { CouponGroup } from "@/lib/db/schema/associative";
+import { getUserAuth } from "@/lib/auth/utils";
 
 type TOpenModal = (group?: Group) => void;
 
@@ -70,7 +71,7 @@ export default function GroupList({
   );
 }
 
-const Group = ({
+const Group = async ({
   group,
   openModal,
   couponGroups,

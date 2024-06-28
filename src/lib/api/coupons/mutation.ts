@@ -52,7 +52,10 @@ export const updateCoupon = async (
       .update(coupons)
       .set({ ...newCoupon, updatedAt: new Date() })
       .where(
-        and(eq(coupons.id, couponId!), eq(coupons.userId, session?.user.id!))
+        and(
+          eq(coupons.id, couponId!)
+          // eq(coupons.userId, session?.user.id!)
+        )
       )
       .returning();
 
