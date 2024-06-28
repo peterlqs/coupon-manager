@@ -29,6 +29,12 @@ export const getGroups = async () => {
   return { groups: allGroups, couponGroups: allCouponGroups };
 };
 
+export const getAllGroups = async () => {
+  const rows = await db.select().from(groups);
+
+  return { groups: rows };
+};
+
 export const getGroupById = async (id: string) => {
   const { session } = await getUserAuth();
   const rows = await db

@@ -47,7 +47,7 @@ export default function LandingPage() {
             </div>
           </div>
         </section> */}
-        <section id="features" className="w-full py-12 md:py-24 lg:py-32 mt-32">
+        <section id="features" className="w-full py-12 md:py-16 lg:py-32 mt-32">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div>
@@ -103,7 +103,7 @@ export default function LandingPage() {
           </div>
         </section>
       </main>
-      <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
+      {/* <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
         <p className="text-xs text-neutral-500 dark:text-neutral-400">
           © 2024 Acme Inc. All rights reserved.
         </p>
@@ -115,7 +115,7 @@ export default function LandingPage() {
             Privacy
           </Link>
         </nav>
-      </footer>
+      </footer> */}
     </div>
   );
 }

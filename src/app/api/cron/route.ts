@@ -4,6 +4,7 @@ import {
   getAllCouponsByDays,
 } from "@/lib/api/coupons/queries";
 import { Coupon } from "@/lib/db/schema/coupons";
+import { getAllGroups, getGroups } from "@/lib/api/groups/queries";
 
 async function handler(request: Request) {
   const baseUrl =
@@ -11,6 +12,7 @@ async function handler(request: Request) {
       ? `https://savecoupon.vercel.app`
       : "http://localhost:3000";
   const userCoupons: Record<string, { day: number; coupon: Coupon }[]> = {};
+  const groups = await getAllGroups();
   for (let day of [1, 7]) {
     const coupons = await getAllCouponsByDays(day);
     for (const coupon of coupons.coupons) {
@@ -38,13 +40,22 @@ async function handler(request: Request) {
       }
       groupedCoupons[i].push(coupon);
     }
-
+    console.log(groups.groups);
     // Compose the email message
     let message = `Here are your coupons expiring in the next 7 days: \n\n`;
     for (const day in groupedCoupons) {
       message += `**Expiring in ${day} day(s):**\n`;
       for (const coupon of groupedCoupons[day]) {
-        message += `- Code: ${coupon.code} - Store: ${coupon.store} - Discount: ${coupon.discount_amount} - Group: ${coupon.groupId} \n`;
+        console.log(coupon.groupId);
+        message += `
+        - Code: ${coupon.code}
+          ${coupon.store && `- Store: ${coupon.store}`}
+          ${coupon.store && `- Store: ${coupon.store}`}
+          ${coupon.discount_amount && `- Discount: ${coupon.discount_amount}`}
+          - Group: ${
+            groups.groups.find((group) => group.id === coupon.groupId)?.name
+          } 
+        `;
       }
       message += "\n";
     }
